@@ -1,0 +1,2280 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studio Album Proofing - Chọn Ảnh Album & Ảnh Cổng</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Playfair Display, Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'Georgia', 'serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html, body {
+            max-width: 100%;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.22s ease-out forwards;
+        }
+    </style>
+</head>
+<body class="bg-[#F8F7F4] text-stone-900 font-sans antialiased selection:bg-amber-200 selection:text-stone-900">
+
+    <!-- ==================== THANH ĐIỀU HƯỚNG CHÍNH (HEADER) ==================== -->
+    <header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-stone-200/90">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+            <!-- Logo Studio & Tên Thương Hiệu -->
+            <div class="flex items-center gap-3 min-w-0">
+                <div id="header-logo-wrapper" class="w-10 h-10 rounded-xl bg-stone-900 text-amber-400 flex items-center justify-center shrink-0 shadow-xs overflow-hidden border border-stone-200">
+                    <i id="header-logo-fallback" class="fa-solid fa-folder-open text-base"></i>
+                    <img id="header-logo-img" src="" alt="Logo Studio" class="hidden w-full h-full object-cover">
+                </div>
+                <div class="min-w-0">
+                    <div id="header-studio-name" class="font-serif text-base sm:text-lg font-bold text-stone-900 leading-tight truncate">
+                        Studio Album Proofing
+                    </div>
+                    <div id="header-mode-subtitle" class="text-[11px] sm:text-xs text-stone-500 truncate">
+                        Chọn ảnh Album & Ảnh Cổng
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trạng Thái Kết Nối & Các Nút Chuyển Chế Độ -->
+            <div class="flex items-center gap-2 sm:gap-2.5 shrink-0">
+                <span id="sync-status-badge" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/80">
+                    <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                    <span>Đang kết nối...</span>
+                </span>
+
+                <!-- Nút Nhúng Google Sites (Chỉ hiện ở Trang Quản Lý) -->
+                <button type="button" id="btn-header-sites" onclick="openModal('modal-sites-guide')"
+                    class="hidden px-3.5 py-2 rounded-xl text-xs font-bold bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 transition items-center gap-1.5">
+                    <i class="fa-brands fa-google"></i>
+                    <span class="hidden sm:inline">Nhúng Google Sites</span>
+                </button>
+
+                <!-- Nút Vào Trang Quản Lý (Hiện ở Trang Khách) -->
+                <button type="button" id="btn-mode-admin" onclick="requestAdminAccess()"
+                    class="px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold bg-stone-900 hover:bg-stone-800 text-white shadow-xs transition flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-amber-400"></i>
+                    <span>Trang Quản Lý</span>
+                </button>
+
+                <!-- Nút Quay Lại Trang Khách (Hiện ở Trang Quản Lý) -->
+                <button type="button" id="btn-mode-client" onclick="switchMode('client')"
+                    class="hidden px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold bg-stone-900 hover:bg-stone-800 text-white shadow-xs transition items-center gap-2">
+                    <i class="fa-solid fa-eye text-amber-400"></i>
+                    <span>Xem Trang Khách</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==================== GIAO DIỆN KHÁCH HÀNG (CLIENT PROOFING VIEW - NHƯ ẢNH 3) ==================== -->
+    <main id="view-client" class="max-w-7xl mx-auto px-4 sm:px-6 pt-5 pb-24 space-y-4">
+
+        <!-- Thẻ 1: Tiêu Đề Album Khách Hàng & Ô Nhập Mã Album -->
+        <section class="bg-white rounded-2xl border border-stone-200/90 shadow-xs p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="space-y-1.5 min-w-0">
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100/80 text-amber-800">
+                    <i class="fa-regular fa-image text-amber-600"></i>
+                    <span>Album Khách Hàng</span>
+                </div>
+                <h1 id="header-album-title" class="font-serif text-2xl sm:text-3xl font-bold text-stone-900 leading-snug">
+                    Album Cưới Mẫu - Minh Anh & Hoàng Nam
+                </h1>
+                <p id="header-client-subtitle" class="text-xs sm:text-sm text-stone-500">
+                    Vui lòng chọn đúng số lượng Ảnh Cổng và Ảnh Album theo quy định bên dưới, sau đó nhấn "Lưu Lựa Chọn".
+                </p>
+            </div>
+
+            <!-- Ô nhập / hiển thị mã Album nhanh -->
+            <div class="shrink-0">
+                <div class="inline-flex items-center p-1.5 rounded-xl bg-stone-50 border border-stone-200 shadow-2xs">
+                    <input type="text" id="client-album-code-input" value="DEMO26" placeholder="Nhập mã..."
+                        onkeydown="if(event.key==='Enter') switchAlbumByCode()"
+                        class="w-24 sm:w-28 px-2.5 py-1 text-xs sm:text-sm font-mono font-bold uppercase text-stone-800 bg-transparent focus:outline-none">
+                    <button type="button" onclick="switchAlbumByCode()" title="Mở Album theo mã"
+                        class="w-8 h-8 rounded-lg bg-stone-900 hover:bg-stone-800 text-white flex items-center justify-center transition">
+                        <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Thẻ 2: Thanh Tiến Độ Ảnh Cổng / Ảnh Album & Bộ Lọc -->
+        <section class="bg-white rounded-2xl border border-stone-200/90 shadow-xs p-4 sm:p-5 space-y-4">
+            <!-- 2 Thẻ Tiến Độ Cân Đối -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
+                <!-- Thẻ Ảnh Cổng (Ảnh Lớn) -->
+                <div class="p-4 rounded-2xl border border-amber-200 bg-amber-50/25 space-y-3">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                <i class="fa-solid fa-crown text-sm"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-sm font-extrabold text-stone-900 truncate">Ảnh Cổng (Ảnh Lớn)</div>
+                                <div id="client-portal-status" class="text-xs text-stone-500 truncate">Chọn đúng số lượng quy định</div>
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <span id="client-portal-count" class="text-xl sm:text-2xl font-extrabold text-amber-700 font-mono">0 / 1</span>
+                        </div>
+                    </div>
+                    <!-- Thanh tiến độ trực quan -->
+                    <div class="w-full h-2 rounded-full bg-amber-100 overflow-hidden">
+                        <div id="client-portal-bar" class="h-full bg-amber-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <!-- Thẻ Ảnh Album -->
+                <div class="p-4 rounded-2xl border border-emerald-200 bg-emerald-50/25 space-y-3">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                                <i class="fa-solid fa-book-open text-sm"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="text-sm font-extrabold text-stone-900 truncate">Ảnh Album</div>
+                                <div id="client-album-status" class="text-xs text-stone-500 truncate">Chọn đúng số lượng quy định</div>
+                            </div>
+                        </div>
+                        <div class="text-right shrink-0">
+                            <span id="client-album-count" class="text-xl sm:text-2xl font-extrabold text-emerald-700 font-mono">0 / 10</span>
+                        </div>
+                    </div>
+                    <!-- Thanh tiến độ trực quan -->
+                    <div class="w-full h-2 rounded-full bg-emerald-100 overflow-hidden">
+                        <div id="client-album-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Hàng Bộ Lọc, Tìm Kiếm & Ghi Chú Chung -->
+            <div class="pt-3 border-t border-stone-100 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 lg:pb-0">
+                    <button type="button" onclick="setClientFilter('all')" data-filter="all"
+                        class="filter-pill px-3.5 py-1.5 rounded-full text-xs font-bold bg-stone-900 text-white shrink-0 transition">
+                        Tất cả (<span id="filter-count-all">0</span>)
+                    </button>
+                    <button type="button" onclick="setClientFilter('portal')" data-filter="portal"
+                        class="filter-pill px-3.5 py-1.5 rounded-full text-xs font-bold bg-stone-100 text-stone-700 hover:bg-stone-200 shrink-0 transition">
+                        👑 Ảnh Cổng (<span id="filter-count-portal">0</span>)
+                    </button>
+                    <button type="button" onclick="setClientFilter('album')" data-filter="album"
+                        class="filter-pill px-3.5 py-1.5 rounded-full text-xs font-bold bg-stone-100 text-stone-700 hover:bg-stone-200 shrink-0 transition">
+                        📖 Ảnh Album (<span id="filter-count-album">0</span>)
+                    </button>
+                    <button type="button" onclick="setClientFilter('unselected')" data-filter="unselected"
+                        class="filter-pill px-3.5 py-1.5 rounded-full text-xs font-bold bg-stone-100 text-stone-700 hover:bg-stone-200 shrink-0 transition">
+                        Chưa chọn (<span id="filter-count-unselected">0</span>)
+                    </button>
+                    <button type="button" onclick="setClientFilter('notes')" data-filter="notes"
+                        class="filter-pill px-3.5 py-1.5 rounded-full text-xs font-bold bg-stone-100 text-stone-700 hover:bg-stone-200 shrink-0 transition">
+                        💬 Có góp ý (<span id="filter-count-notes">0</span>)
+                    </button>
+                </div>
+
+                <!-- Tìm kiếm tên tệp, Đổi khung & Ghi chú chung -->
+                <div class="flex flex-wrap sm:flex-nowrap items-center gap-2">
+                    <div class="relative flex-1 sm:w-44">
+                        <i class="fa-solid fa-magnifying-glass text-stone-400 text-xs absolute left-3 top-1/2 -translate-y-1/2"></i>
+                        <input type="text" id="client-search-input" oninput="renderClientGallery()" placeholder="Tìm tên file..."
+                            class="w-full pl-8 pr-3 py-1.5 text-xs bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900">
+                    </div>
+
+                    <button type="button" id="btn-toggle-aspect" onclick="toggleGridAspect()"
+                        class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-stone-50 hover:bg-stone-100 text-stone-700 border border-stone-200 shrink-0 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-table-cells"></i>
+                        <span id="label-aspect-mode">Khung đều 4:3</span>
+                    </button>
+
+                    <button type="button" onclick="openGeneralNoteModal()"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 shrink-0 flex items-center gap-1.5 transition">
+                        <i class="fa-regular fa-pen-to-square"></i>
+                        <span>Ghi chú chung</span>
+                        <span id="general-note-dot" class="hidden w-2 h-2 rounded-full bg-rose-500"></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Thông báo lần lưu gần nhất -->
+            <div id="client-last-saved-bar" class="hidden text-xs text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-3.5 py-2 flex items-center justify-between gap-2">
+                <span class="flex items-center gap-1.5 font-semibold">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span id="client-last-saved-text">Đã lưu lựa chọn lên hệ thống!</span>
+                </span>
+                <span class="font-mono text-[11px] text-emerald-600">Đồng bộ mọi thiết bị</span>
+            </div>
+        </section>
+
+        <!-- Lưới Hiển Thị Ảnh Ngay Ngắn Hàng Lối -->
+        <section id="client-gallery-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+            <!-- Các thẻ ảnh sẽ được render bằng JavaScript -->
+        </section>
+
+        <!-- Trạng thái trống khi lọc không có ảnh -->
+        <div id="client-empty-state" class="hidden bg-white rounded-2xl border border-stone-200 p-10 text-center space-y-2">
+            <div class="w-12 h-12 rounded-2xl bg-stone-100 text-stone-400 flex items-center justify-center mx-auto text-xl">
+                <i class="fa-regular fa-images"></i>
+            </div>
+            <h3 class="text-sm font-bold text-stone-800">Không tìm thấy ảnh phù hợp</h3>
+            <p class="text-xs text-stone-500">Thử chuyển sang tab "Tất cả" hoặc xóa từ khóa tìm kiếm tên tệp.</p>
+        </div>
+    </main>
+
+    <!-- Thanh Lưu Cố Định Ở Đáy Màn Hình (Cho cả Máy Tính & Điện Thoại như Ảnh 3) -->
+    <div id="sticky-client-footer" class="fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-stone-200 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+            <div class="flex flex-wrap items-center gap-4 sm:gap-6 text-xs sm:text-sm font-bold">
+                <div class="flex items-center gap-2 text-stone-800">
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                    <span>Ảnh Cổng: <strong id="footer-portal-count" class="font-mono text-amber-700">0/1</strong></span>
+                </div>
+                <div class="flex items-center gap-2 text-stone-800">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                    <span>Ảnh Album: <strong id="footer-album-count" class="font-mono text-emerald-700">0/10</strong></span>
+                </div>
+            </div>
+
+            <button type="button" id="btn-client-save" onclick="saveClientSelection()"
+                class="px-5 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-stone-900 hover:bg-stone-800 text-white shadow-md transition flex items-center gap-2 shrink-0">
+                <i class="fa-solid fa-cloud-arrow-up text-amber-400"></i>
+                <span>Lưu Lựa Chọn</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== TRANG QUẢN LÝ CỦA STUDIO (ADMIN VIEW - NHƯ ẢNH 4) ==================== -->
+    <main id="view-admin" class="hidden max-w-7xl mx-auto px-4 sm:px-6 pt-5 pb-20 space-y-5">
+
+        <!-- Banner Tiêu Đề Bảng Điều Khiển Studio -->
+        <section class="bg-white rounded-2xl border border-stone-200/90 shadow-xs p-5 sm:p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="space-y-1">
+                <h2 class="font-serif text-2xl sm:text-3xl font-bold text-stone-900">Bảng Điều Khiển Studio</h2>
+                <p class="text-xs sm:text-sm text-stone-500">
+                    Thiết lập số lượng Ảnh Cổng, Ảnh Album, lấy ảnh từ Google Drive và theo dõi kết quả khách chọn.
+                </p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                <button type="button" onclick="openStudioBrandingModal()"
+                    class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 transition flex items-center gap-2">
+                    <i class="fa-solid fa-gear text-stone-600"></i>
+                    <span>Logo, Tên Studio & PIN</span>
+                </button>
+                <button type="button" onclick="openAlbumEditorModal(true)"
+                    class="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-stone-900 hover:bg-stone-800 text-white shadow-xs transition flex items-center gap-2">
+                    <i class="fa-solid fa-plus text-amber-400"></i>
+                    <span>Tạo Album Mới</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Bố Cục 2 Cột: Danh Sách Album (Trái) & Chi Tiết Kết Quả (Phải) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+
+            <!-- Cột Trái (4/12): DANH SÁCH ALBUM -->
+            <aside class="lg:col-span-4 space-y-3">
+                <div class="flex items-center justify-between px-1">
+                    <h3 class="text-xs font-extrabold uppercase tracking-wider text-stone-500">
+                        DANH SÁCH ALBUM (<span id="admin-album-total-count">0</span>)
+                    </h3>
+                </div>
+                <div id="admin-album-cards-list" class="space-y-2.5">
+                    <!-- Render danh sách thẻ Album bằng JS -->
+                </div>
+            </aside>
+
+            <!-- Cột Phải (8/12): THÔNG TIN ALBUM ĐANG CHỌN & KẾT QUẢ KHÁCH CHỌN -->
+            <div class="lg:col-span-8 space-y-4">
+
+                <!-- Thẻ A: Tiêu đề Album, Nút Sửa Setup, Nút Xóa Album & Link Gửi Khách -->
+                <section class="bg-white rounded-2xl border border-stone-200/90 shadow-xs p-5 space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                        <div class="space-y-1 min-w-0">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <h3 id="admin-active-album-title" class="font-serif text-xl sm:text-2xl font-bold text-stone-900">
+                                    Album Cưới Mẫu - Minh Anh & Hoàng Nam
+                                </h3>
+                                <span id="admin-active-album-code" class="px-2.5 py-0.5 rounded-md bg-stone-900 text-amber-400 font-mono text-xs font-bold">
+                                    Mã: DEMO26
+                                </span>
+                            </div>
+                            <p class="text-xs text-stone-500">
+                                Tổng số ảnh gốc: <strong id="stat-total-photos" class="text-stone-800">0</strong>
+                                &bull; Cập nhật từ khách: <strong id="stat-last-sync" class="text-stone-800">Khách chưa nhấn Lưu</strong>
+                                &bull; <span id="stat-notes-count">0 ảnh có góp ý</span>
+                            </p>
+                        </div>
+
+                        <!-- Nút Sửa Setup & Nút Xóa Album -->
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button type="button" onclick="openAlbumEditorModal(false)"
+                                class="px-3.5 py-2 rounded-xl text-xs font-bold bg-stone-100 hover:bg-stone-200 text-stone-800 border border-stone-200 transition flex items-center gap-1.5">
+                                <i class="fa-regular fa-pen-to-square"></i>
+                                <span>Sửa Setup</span>
+                            </button>
+                            <button type="button" onclick="openDeleteAlbumModal()" title="Xóa Album này"
+                                class="w-9 h-9 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 transition flex items-center justify-center">
+                                <i class="fa-regular fa-trash-can text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Khung Link Gửi Khách Hàng -->
+                    <div class="p-4 rounded-xl bg-stone-50 border border-stone-200/80 space-y-2">
+                        <label class="block text-[11px] font-extrabold uppercase tracking-wider text-stone-500">
+                            LINK GỬI KHÁCH HÀNG XEM & CHỌN ẢNH
+                        </label>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            <input type="text" id="admin-share-url-preview" readonly
+                                class="flex-1 px-3.5 py-2 text-xs font-mono bg-white border border-stone-200 rounded-xl text-stone-700 focus:outline-none">
+                            <button type="button" onclick="copyShareLink()"
+                                class="px-4 py-2 rounded-xl text-xs font-bold bg-stone-900 hover:bg-stone-800 text-white transition flex items-center justify-center gap-1.5 shrink-0">
+                                <i class="fa-solid fa-link text-amber-400"></i>
+                                <span>Sao Chép Link</span>
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-stone-500">
+                            Mẹo: Nếu nhúng lên <strong>sites.google.com</strong>, bạn có thể gửi link trang Google Sites kèm hướng dẫn khách nhập mã <strong id="admin-tip-code" class="font-mono text-stone-800">DEMO26</strong>.
+                        </p>
+                    </div>
+                </section>
+
+                <!-- Góp ý chung của khách hàng (Nếu có) -->
+                <div id="admin-general-note-box" class="hidden p-4 rounded-2xl bg-rose-50 border border-rose-200 space-y-1">
+                    <div class="text-xs font-bold text-rose-800 flex items-center gap-1.5">
+                        <i class="fa-solid fa-comment-dots"></i> Ghi Chú / Góp Ý Chung Của Khách Hàng:
+                    </div>
+                    <p id="admin-general-note-text" class="text-xs sm:text-sm text-stone-800 whitespace-pre-line"></p>
+                </div>
+
+                <!-- Thẻ B: 2 Cột Danh Sách Ảnh Cổng & Ảnh Album Khách Đã Chọn -->
+                <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Cột Ảnh Cổng -->
+                    <div class="bg-white rounded-2xl border border-amber-200 shadow-xs p-4 space-y-3">
+                        <div class="flex items-center justify-between gap-2 pb-2 border-b border-amber-100">
+                            <div class="flex items-center gap-2">
+                                <span class="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center text-xs">
+                                    <i class="fa-solid fa-crown"></i>
+                                </span>
+                                <h4 class="text-sm font-extrabold text-stone-900">
+                                    Ảnh Cổng (<span id="admin-portal-list-count">0/1</span>)
+                                </h4>
+                            </div>
+                            <button type="button" onclick="copySelectedFilenames('portal')"
+                                class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 transition flex items-center gap-1">
+                                <i class="fa-regular fa-copy"></i>
+                                <span>Copy Tên File</span>
+                            </button>
+                        </div>
+                        <div id="admin-portal-list" class="space-y-2">
+                            <!-- Render bằng JS -->
+                        </div>
+                    </div>
+
+                    <!-- Cột Ảnh Album -->
+                    <div class="bg-white rounded-2xl border border-emerald-200 shadow-xs p-4 space-y-3">
+                        <div class="flex items-center justify-between gap-2 pb-2 border-b border-emerald-100">
+                            <div class="flex items-center gap-2">
+                                <span class="w-7 h-7 rounded-lg bg-emerald-600 text-white flex items-center justify-center text-xs">
+                                    <i class="fa-solid fa-book-open"></i>
+                                </span>
+                                <h4 class="text-sm font-extrabold text-stone-900">
+                                    Ảnh Album (<span id="admin-album-list-count">0/10</span>)
+                                </h4>
+                            </div>
+                            <button type="button" onclick="copySelectedFilenames('album')"
+                                class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 transition flex items-center gap-1">
+                                <i class="fa-regular fa-copy"></i>
+                                <span>Copy Tên File</span>
+                            </button>
+                        </div>
+                        <div id="admin-album-list" class="space-y-2 max-h-[480px] overflow-y-auto pr-1">
+                            <!-- Render bằng JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Thẻ C: Thanh Xuất Báo Cáo Toàn Bộ Kết Quả & Góp Ý -->
+                <section class="bg-white rounded-2xl border border-stone-200/90 shadow-xs p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <span class="text-xs text-stone-600">
+                        Xuất toàn bộ tên tệp gốc & yêu cầu chỉnh sửa để gửi cho bộ phận Photoshop/Design:
+                    </span>
+                    <button type="button" onclick="copyFullReport()"
+                        class="px-4 py-2.5 rounded-xl text-xs font-extrabold bg-stone-900 hover:bg-stone-800 text-white transition flex items-center justify-center gap-2 shrink-0">
+                        <i class="fa-solid fa-file-export text-amber-400"></i>
+                        <span>Sao Chép Toàn Bộ Kết Quả & Góp Ý</span>
+                    </button>
+                </section>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- ==================== CÁC CỬA SỔ POPUP (MODALS) ==================== -->
+
+    <!-- 1. Modal Xem Ảnh Phóng To (Lightbox) & Góp Ý Từng Ảnh -->
+    <div id="modal-lightbox" class="hidden fixed inset-0 z-50 bg-stone-950/95 backdrop-blur-md flex flex-col">
+        <!-- Header Lightbox -->
+        <div class="px-4 py-3 flex items-center justify-between text-white border-b border-white/10 shrink-0">
+            <div class="flex items-center gap-2.5 min-w-0">
+                <span id="lightbox-index" class="px-2 py-0.5 rounded-md bg-white/10 text-xs font-mono">1 / 10</span>
+                <span id="lightbox-filename" class="text-xs sm:text-sm font-mono font-bold truncate text-amber-300">IMG_001.JPG</span>
+            </div>
+            <button type="button" onclick="closeModal('modal-lightbox')"
+                class="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+        </div>
+
+        <!-- Vùng hiển thị ảnh chính -->
+        <div id="lightbox-touch-area" class="relative flex-1 flex items-center justify-center p-2 sm:p-6 overflow-hidden select-none">
+            <button type="button" onclick="navigateLightbox(-1)"
+                class="absolute left-2 sm:left-5 z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/50 hover:bg-black/80 text-white border border-white/20 flex items-center justify-center transition">
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+
+            <img id="lightbox-img" src="" alt="Xem ảnh chi tiết"
+                class="max-h-full max-w-full object-contain rounded-lg shadow-2xl transition-all duration-200">
+
+            <button type="button" onclick="navigateLightbox(1)"
+                class="absolute right-2 sm:right-5 z-10 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-black/50 hover:bg-black/80 text-white border border-white/20 flex items-center justify-center transition">
+                <i class="fa-solid fa-chevron-right"></i>
+            </button>
+        </div>
+
+        <!-- Thanh công cụ chọn & góp ý ngay trong Lightbox -->
+        <div class="bg-stone-900 border-t border-white/10 px-4 py-3 shrink-0">
+            <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                <div class="flex items-center gap-2 shrink-0">
+                    <button type="button" id="lb-btn-portal" onclick="togglePhotoSelectionFromLightbox('portal')"
+                        class="flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-crown"></i>
+                        <span>Ảnh Cổng</span>
+                    </button>
+                    <button type="button" id="lb-btn-album" onclick="togglePhotoSelectionFromLightbox('album')"
+                        class="flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-bold border transition flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>Ảnh Album</span>
+                    </button>
+                </div>
+
+                <div class="flex-1 flex items-center gap-2">
+                    <input type="text" id="lb-note-input" placeholder="Nhập góp ý chỉnh sửa riêng cho ảnh này (VD: Bóp gọn tay, làm sáng da)..."
+                        class="flex-1 px-3.5 py-2 rounded-xl text-xs bg-stone-800 text-white border border-stone-700 focus:outline-none focus:border-amber-400">
+                    <button type="button" onclick="savePhotoNoteFromLightbox()"
+                        class="px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-stone-950 shrink-0 transition">
+                        Lưu Góp Ý
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Modal Góp Ý Chỉnh Sửa Cho Từng Ảnh -->
+    <div id="modal-photo-note" class="hidden fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-stone-200 animate-fade-in space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-extrabold text-stone-900 flex items-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles text-amber-500"></i>
+                    <span>Góp Ý Chỉnh Sửa Ảnh</span>
+                </h3>
+                <button type="button" onclick="closeModal('modal-photo-note')" class="text-stone-400 hover:text-stone-700">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="flex items-center gap-3 p-2.5 rounded-xl bg-stone-50 border border-stone-200">
+                <img id="note-modal-thumb" src="" alt="" class="w-14 h-14 rounded-lg object-cover bg-stone-200 shrink-0">
+                <div class="min-w-0">
+                    <div class="text-[11px] text-stone-500">Tên tệp gốc:</div>
+                    <div id="note-modal-filename" class="text-xs font-mono font-bold text-stone-900 truncate">IMG_001.JPG</div>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-stone-700 mb-1.5">Yêu cầu chỉnh sửa của bạn:</label>
+                <textarea id="note-modal-textarea" rows="3" placeholder="Ví dụ: Bóp gọn bắp tay, xóa người phía sau, chỉnh màu sáng hơn một chút..."
+                    class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-stone-50 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900"></textarea>
+                <div class="flex flex-wrap gap-1.5 mt-2">
+                    <button type="button" onclick="appendQuickNote('Làm mịn da tự nhiên')" class="px-2 py-1 rounded-lg text-[11px] bg-stone-100 hover:bg-stone-200 text-stone-700">+ Làm mịn da</button>
+                    <button type="button" onclick="appendQuickNote('Bóp gọn dáng nhẹ')" class="px-2 py-1 rounded-lg text-[11px] bg-stone-100 hover:bg-stone-200 text-stone-700">+ Bóp gọn dáng</button>
+                    <button type="button" onclick="appendQuickNote('Xóa chi tiết thừa hậu cảnh')" class="px-2 py-1 rounded-lg text-[11px] bg-stone-100 hover:bg-stone-200 text-stone-700">+ Xóa chi tiết thừa</button>
+                    <button type="button" onclick="appendQuickNote('Chỉnh tông màu tươi sáng')" class="px-2 py-1 rounded-lg text-[11px] bg-stone-100 hover:bg-stone-200 text-stone-700">+ Màu tươi sáng</button>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2">
+                <button type="button" onclick="closeModal('modal-photo-note')" class="px-4 py-2 rounded-xl text-xs font-bold bg-stone-100 text-stone-700 hover:bg-stone-200">Hủy</button>
+                <button type="button" onclick="confirmPhotoNote()" class="px-4 py-2 rounded-xl text-xs font-bold bg-stone-900 text-white hover:bg-stone-800">Lưu Góp Ý</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Modal Góp Ý Chung Cho Toàn Bộ Album -->
+    <div id="modal-general-note" class="hidden fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-stone-200 animate-fade-in space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-extrabold text-stone-900 flex items-center gap-2">
+                    <i class="fa-solid fa-comment-dots text-amber-500"></i>
+                    <span>Góp Ý Chung Cho Toàn Bộ Album</span>
+                </h3>
+                <button type="button" onclick="closeModal('modal-general-note')" class="text-stone-400 hover:text-stone-700">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            <p class="text-xs text-stone-500">Bạn có yêu cầu chung nào về phong cách dàn trang Album, tông màu hoặc chữ in trên Ảnh Cổng không?</p>
+            <textarea id="general-note-textarea" rows="4" placeholder="Ví dụ: Dàn trang album theo phong cách tối giản Hàn Quốc, chèn tên cô dâu chú rể ở trang bìa..."
+                class="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-stone-50 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900"></textarea>
+            <div class="flex justify-end gap-2">
+                <button type="button" onclick="closeModal('modal-general-note')" class="px-4 py-2 rounded-xl text-xs font-bold bg-stone-100 text-stone-700">Đóng</button>
+                <button type="button" onclick="saveGeneralNote()" class="px-4 py-2 rounded-xl text-xs font-bold bg-stone-900 text-white">Xác Nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Modal Tạo / Chỉnh Sửa Setup Album & Lấy Ảnh Google Drive -->
+    <div id="modal-album-editor" class="hidden fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl border border-stone-200 animate-fade-in space-y-5">
+            <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+                <h3 id="editor-modal-title" class="text-lg font-extrabold text-stone-900">Thiết Lập Album & Số Lượng Ảnh</h3>
+                <button type="button" onclick="closeModal('modal-album-editor')" class="text-stone-400 hover:text-stone-700">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Thông tin cơ bản & Định mức số lượng -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-bold text-stone-700 mb-1">Tên Album / Bộ Ảnh *</label>
+                    <input type="text" id="edit-album-title" placeholder="VD: Album Cưới - Minh Anh & Hoàng Nam"
+                        class="w-full px-3.5 py-2 text-xs sm:text-sm bg-stone-50 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-stone-700 mb-1">Tên Khách Hàng</label>
+                    <input type="text" id="edit-client-name" placeholder="VD: Anh Nam - Chị Minh Anh"
+                        class="w-full px-3.5 py-2 text-xs sm:text-sm bg-stone-50 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-stone-700 mb-1">Mã Truy Cập Nhanh (Code)</label>
+                    <input type="text" id="edit-album-code" maxlength="12" placeholder="VD: NAMANH26"
+                        class="w-full px-3.5 py-2 text-xs sm:text-sm font-mono font-bold uppercase bg-stone-50 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900">
+                </div>
+
+                <div class="p-3 rounded-xl bg-amber-50/70 border border-amber-200">
+                    <label class="block text-xs font-extrabold text-amber-900 mb-1">👑 Số Lượng Ảnh Cổng Quy Định *</label>
+                    <input type="number" id="edit-portal-quota" min="0" max="50" value="1"
+                        class="w-full px-3 py-1.5 text-sm font-extrabold font-mono bg-white border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500">
+                    <span class="text-[11px] text-amber-700 mt-1 block">Khách chỉ chọn được đúng số này</span>
+                </div>
+
+                <div class="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200">
+                    <label class="block text-xs font-extrabold text-emerald-900 mb-1">📖 Số Lượng Ảnh Album Quy Định *</label>
+                    <input type="number" id="edit-album-quota" min="1" max="500" value="10"
+                        class="w-full px-3 py-1.5 text-sm font-extrabold font-mono bg-white border border-emerald-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <span class="text-[11px] text-emerald-700 mt-1 block">Khách chỉ chọn được đúng số này</span>
+                </div>
+            </div>
+
+            <!-- Nguồn ảnh Google Drive -->
+            <div class="p-4 rounded-xl bg-stone-50 border border-stone-200 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <h4 class="text-xs font-extrabold uppercase tracking-wider text-stone-800 flex items-center gap-1.5">
+                        <i class="fa-brands fa-google-drive text-blue-600"></i> Lấy Ảnh Từ Google Drive (Giữ Nguyên Tên Tệp Gốc)
+                    </h4>
+                    <button type="button" onclick="openModal('modal-drive-help')" class="text-xs font-bold text-blue-600 hover:underline">
+                        Hướng dẫn 3 bước
+                    </button>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input type="text" id="edit-drive-folder" placeholder="Dán link thư mục Google Drive (https://drive.google.com/drive/folders/...)"
+                        class="flex-1 px-3.5 py-2 text-xs sm:text-sm bg-white border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900">
+                    <button type="button" id="btn-fetch-drive" onclick="fetchPhotosFromDrive()"
+                        class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white transition shrink-0 flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-cloud-arrow-down"></i>
+                        <span>Lấy Ảnh Drive</span>
+                    </button>
+                </div>
+
+                <!-- Công cụ lấy nhanh trực tiếp từ tab Drive hoặc dán danh sách link phân cách dấu phẩy -->
+                <div id="drive-direct-fallback-box" class="hidden p-3.5 rounded-xl bg-amber-50 border border-amber-300 space-y-2.5 animate-fade-in">
+                    <div class="text-xs font-extrabold text-amber-950 flex items-center gap-1.5">
+                        <i class="fa-solid fa-bolt text-amber-600"></i>
+                        <span>Lấy Nhanh Từ Tab Drive Hoặc Dán Danh Sách Link Phân Cách Dấu Phẩy (,):</span>
+                    </div>
+                    <p class="text-[11px] text-amber-900 leading-relaxed">
+                        <strong>Cách A (Lấy tự động cả thư mục & tên file gốc):</strong> Nhấn <strong>1. Mở Danh Sách Drive</strong> &rarr; nhấn <kbd class="px-1.5 py-0.5 bg-white border border-amber-300 rounded font-mono">Ctrl + U</kbd>, <kbd class="px-1.5 py-0.5 bg-white border border-amber-300 rounded font-mono">Ctrl + A</kbd>, <kbd class="px-1.5 py-0.5 bg-white border border-amber-300 rounded font-mono">Ctrl + C</kbd> rồi dán vào ô dưới.<br>
+                        <strong>Cách B (Dán nhiều link ảnh Drive):</strong> Dán các đường link ảnh phân cách nhau bằng <strong>dấu phẩy (<code>,</code>)</strong> (hoặc định dạng <code>TenFile.JPG | Link</code>).
+                    </p>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <a id="btn-open-drive-embedded" href="#" target="_blank" rel="noopener noreferrer"
+                            class="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white inline-flex items-center gap-1.5">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            <span>1. Mở Danh Sách Drive</span>
+                        </a>
+                    </div>
+                    <textarea id="drive-raw-paste-input" rows="3" oninput="parsePastedDriveSource()"
+                        placeholder="Dán mã nguồn trang Drive (Ctrl+V) hoặc danh sách link phân cách bằng dấu phẩy (link1, link2, link3...)"
+                        class="w-full p-2.5 text-xs font-mono bg-white border border-amber-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500"></textarea>
+                </div>
+
+                <!-- Các nút hỗ trợ nạp mẫu hoặc nhập thủ công -->
+                <div class="flex flex-wrap items-center gap-2 pt-1">
+                    <button type="button" onclick="loadSampleStudioPhotos()"
+                        class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white hover:bg-stone-100 text-stone-700 border border-stone-300 transition">
+                        <i class="fa-solid fa-wand-magic text-amber-500 mr-1"></i> Nạp Ảnh Mẫu Studio
+                    </button>
+                    <button type="button" onclick="toggleDirectDriveBox()"
+                        class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-white hover:bg-stone-100 text-stone-700 border border-stone-300 transition">
+                        <i class="fa-solid fa-code mr-1 text-blue-600"></i> Dán Mã Nguồn Drive / Link Phân Cách Dấu Phẩy
+                    </button>
+                </div>
+            </div>
+
+            <!-- Xem trước danh sách ảnh đã nạp -->
+            <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-stone-700">Danh Sách Ảnh Đã Nạp (<span id="editor-photo-count">0</span> ảnh)</span>
+                    <button type="button" onclick="clearEditorPhotos()" class="text-xs text-rose-600 hover:underline font-semibold">Xóa tất cả ảnh</button>
+                </div>
+                <div id="editor-photo-preview" class="grid grid-cols-3 sm:grid-cols-5 gap-2 max-h-48 overflow-y-auto p-2 rounded-xl bg-stone-50 border border-stone-200">
+                    <!-- Preview ảnh -->
+                </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-3 border-t border-stone-100">
+                <button type="button" onclick="closeModal('modal-album-editor')" class="px-4 py-2.5 rounded-xl text-xs font-bold bg-stone-100 text-stone-700 hover:bg-stone-200">Hủy</button>
+                <button type="button" onclick="saveAlbumConfiguration()" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-stone-900 hover:bg-stone-800 text-white shadow-md">
+                    Lưu Cấu Hình Album
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Modal Đăng Nhập Mã PIN / Mật Khẩu Quản Lý -->
+    <div id="modal-pin-login" class="hidden fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-xs w-full p-5 shadow-2xl border border-stone-200 animate-fade-in space-y-4 text-center">
+            <div class="w-12 h-12 rounded-2xl bg-stone-900 text-amber-400 flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <div>
+                <h3 class="text-base font-extrabold text-stone-900">Xác Thực Quản Lý Studio</h3>
+                <p class="text-xs text-stone-500 mt-1">Nhập mật khẩu quản lý (Mặc định ban đầu: <strong class="font-mono text-stone-800">1234</strong>)</p>
+            </div>
+            <input type="password" id="pin-login-input" maxlength="20" placeholder="••••"
+                onkeydown="if(event.key==='Enter') verifyAdminPin()"
+                class="w-full text-center tracking-[0.4em] text-lg font-extrabold font-mono py-2.5 bg-stone-50 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900">
+            <div class="flex gap-2">
+                <button type="button" onclick="closeModal('modal-pin-login')" class="flex-1 py-2 rounded-xl text-xs font-bold bg-stone-100 text-stone-700">Đóng</button>
+                <button type="button" onclick="verifyAdminPin()" class="flex-1 py-2 rounded-xl text-xs font-bold bg-stone-900 text-white">Vào Quản Lý</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Modal Cài Đặt Logo Studio, Tên Studio & Mật Khẩu Quản Lý -->
+    <div id="modal-studio-branding" class="hidden fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto p-5 shadow-2xl border border-stone-200 animate-fade-in space-y-4">
+            <div class="flex items-center justify-between border-b border-stone-100 pb-3">
+                <h3 class="text-base font-extrabold text-stone-900 flex items-center gap-2">
+                    <i class="fa-solid fa-id-badge text-emerald-600"></i> Thương Hiệu Studio & Mật Khẩu
+                </h3>
+                <button type="button" onclick="closeModal('modal-studio-branding')" class="text-stone-400 hover:text-stone-700">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Xem trước Logo & Tên Studio -->
+            <div class="p-3.5 rounded-xl bg-stone-50 border border-stone-200 flex items-center gap-3.5">
+                <div class="w-14 h-14 rounded-xl bg-stone-900 text-amber-400 flex items-center justify-center shrink-0 overflow-hidden border border-stone-300 shadow-xs">
+                    <i id="branding-preview-fallback" class="fa-solid fa-camera-retro text-xl"></i>
+                    <img id="branding-preview-img" src="" alt="Preview Logo" class="hidden w-full h-full object-cover">
+                </div>
+                <div class="min-w-0 flex-1">
+                    <div class="text-[11px] text-stone-500">Hiển thị trên đầu trang:</div>
+                    <div id="branding-preview-name" class="text-sm font-extrabold uppercase text-stone-900 truncate">LUMIÈRE STUDIO</div>
+                </div>
+            </div>
+
+            <!-- Tên Studio -->
+            <div>
+                <label class="block text-xs font-bold text-stone-700 mb-1">Tên Studio của bạn *</label>
+                <input type="text" id="branding-studio-name" oninput="updateBrandingPreview()" placeholder="VD: ÁO CƯỚI HOÀNG GIA STUDIO"
+                    class="w-full px-3.5 py-2 text-xs sm:text-sm font-bold bg-stone-50 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900">
+            </div>
+
+            <!-- Đổi Logo Studio -->
+            <div class="space-y-2">
+                <label class="block text-xs font-bold text-stone-700">Logo Studio (Tải ảnh lên hoặc dán link ảnh)</label>
+                <div class="flex flex-wrap items-center gap-2">
+                    <label class="px-3.5 py-2 rounded-xl text-xs font-bold bg-stone-900 hover:bg-stone-800 text-white cursor-pointer transition inline-flex items-center gap-1.5">
+                        <i class="fa-solid fa-upload text-amber-400"></i>
+                        <span>Chọn Ảnh Logo Từ Máy</span>
+                        <input type="file" id="branding-logo-file" accept="image/*" onchange="handleLogoFileUpload(event)" class="hidden">
+                    </label>
+                    <button type="button" onclick="resetBrandingLogo()"
+                        class="px-3 py-2 rounded-xl text-xs font-semibold bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-200">
+                        Dùng Icon Mặc Định
+                    </button>
+                </div>
+                <input type="text" id="branding-logo-url" oninput="handleLogoUrlInput(this.value)" placeholder="Hoặc dán URL ảnh logo (https://...)"
+                    class="w-full px-3.5 py-2 text-xs bg-stone-50 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900">
+            </div>
+
+            <!-- Đổi Mật Khẩu Trang Quản Lý -->
+            <div class="pt-2 border-t border-stone-100">
+                <label class="block text-xs font-bold text-stone-700 mb-1">Mật Khẩu Trang Quản Lý (tối thiểu 4 ký tự) *</label>
+                <input type="text" id="branding-admin-pin" placeholder="Nhập mật khẩu mới..."
+                    class="w-full px-3.5 py-2 text-sm font-mono font-bold bg-stone-50 border border-stone-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-stone-900">
+                <p class="text-[11px] text-stone-500 mt-1">Mật khẩu mới sẽ được lưu đồng bộ lên hệ thống để sử dụng cho các lần đăng nhập sau.</p>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="closeModal('modal-studio-branding')" class="px-4 py-2 rounded-xl text-xs font-bold bg-stone-100 text-stone-700">Hủy</button>
+                <button type="button" id="btn-save-branding" onclick="saveStudioBranding()" class="px-5 py-2 rounded-xl text-xs font-extrabold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
+                    Lưu Cài Đặt
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 7. Modal Hướng Dẫn Lấy Ảnh Google Drive -->
+    <div id="modal-drive-help" class="hidden fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 shadow-2xl border border-stone-200 animate-fade-in space-y-3">
+            <h3 class="text-base font-extrabold text-stone-900 flex items-center gap-2">
+                <i class="fa-brands fa-google-drive text-blue-600"></i> Hướng Dẫn Lấy Link Google Drive
+            </h3>
+            <ol class="list-decimal list-inside space-y-2 text-xs sm:text-sm text-stone-700 leading-relaxed">
+                <li>Mở <strong>Google Drive</strong>, chuột phải vào thư mục ảnh của khách &rarr; chọn <strong>Chia sẻ (Share)</strong>.</li>
+                <li>Ở phần <em>Quyền truy cập chung</em>, chọn <strong>"Bất kỳ ai có đường liên kết" (Anyone with the link)</strong>.</li>
+                <li>Nhấn <strong>Sao chép đường liên kết</strong>, dán vào ô nhập trong ứng dụng và bấm <strong>Lấy Ảnh Drive</strong>.</li>
+                <li>Nếu mạng chặn kết nối tự động, bạn chỉ cần bấm nút <strong>Mở Danh Sách Drive</strong> hiện ra ngay bên dưới &rarr; nhấn <kbd class="px-1 bg-stone-100 border rounded">Ctrl+U</kbd>, <kbd class="px-1 bg-stone-100 border rounded">Ctrl+A</kbd>, <kbd class="px-1 bg-stone-100 border rounded">Ctrl+C</kbd> rồi dán vào ô là xong!</li>
+            </ol>
+            <div class="flex justify-end pt-2">
+                <button type="button" onclick="closeModal('modal-drive-help')" class="px-4 py-2 rounded-xl text-xs font-bold bg-stone-900 text-white">Đã Hiểu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 8. Modal Hướng Dẫn Nhúng Lên Sites.Google.Com -->
+    <div id="modal-sites-guide" class="hidden fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-5 shadow-2xl border border-stone-200 animate-fade-in space-y-3">
+            <h3 class="text-base font-extrabold text-stone-900 flex items-center gap-2">
+                <i class="fa-brands fa-google text-blue-600"></i> Cách Đưa Lên Sites.Google.Com
+            </h3>
+            <ol class="list-decimal list-inside space-y-2 text-xs sm:text-sm text-stone-700 leading-relaxed">
+                <li>Mở trang chỉnh sửa <strong>Google Sites</strong> (<code>sites.google.com</code>) của bạn.</li>
+                <li>Ở cột bên phải, chọn <strong>Chèn (Insert)</strong> &rarr; nhấn <strong>Nhúng (Embed)</strong>.</li>
+                <li>Chọn tab <strong>Theo URL (By URL)</strong> để dán đường dẫn trang web, hoặc chọn tab <strong>Mã nhúng (Embed code)</strong> để dán trực tiếp toàn bộ mã nguồn HTML này.</li>
+                <li>Kéo rộng khung hiển thị trên Google Sites hết chiều ngang trang để khách hàng xem ảnh rõ nét nhất.</li>
+            </ol>
+            <div class="flex justify-end pt-2">
+                <button type="button" onclick="closeModal('modal-sites-guide')" class="px-4 py-2 rounded-xl text-xs font-bold bg-stone-900 text-white">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 9. Modal Xác Nhận Xóa Album -->
+    <div id="modal-delete-album" class="hidden fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-stone-200 animate-fade-in space-y-4 text-center">
+            <div class="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center mx-auto text-xl">
+                <i class="fa-regular fa-trash-can"></i>
+            </div>
+            <div class="space-y-1">
+                <h3 class="text-base font-extrabold text-stone-900">Xóa Album Này?</h3>
+                <p class="text-xs text-stone-500 leading-relaxed">
+                    Bạn có chắc muốn xóa <strong id="delete-album-target-name" class="text-stone-800">Album này</strong>? Toàn bộ thiết lập và lựa chọn của khách trong album này sẽ bị xóa vĩnh viễn.
+                </p>
+            </div>
+            <div class="flex gap-2 pt-1">
+                <button type="button" onclick="closeModal('modal-delete-album')" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-stone-100 hover:bg-stone-200 text-stone-700">Hủy</button>
+                <button type="button" id="btn-confirm-delete-album" onclick="confirmDeleteAlbum()" class="flex-1 py-2.5 rounded-xl text-xs font-extrabold bg-rose-600 hover:bg-rose-700 text-white shadow-xs">Xóa Album</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== THÔNG BÁO TOAST (THAY THẾ ALERT) ==================== -->
+    <div id="toast-container" class="fixed top-16 right-3 sm:right-6 z-50 flex flex-col gap-2 max-w-xs sm:max-w-sm pointer-events-none"></div>
+
+    <!-- ==================== LOGIC ỨNG DỤNG & ĐỒNG BỘ DỮ LIỆU ==================== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // -------------------- 1. KHỞI TẠO TRẠNG THÁI ỨNG DỤNG --------------------
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'studio-album-proofing-v1';
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        let isCloudConnected = false;
+
+        // Dữ liệu mẫu khởi tạo để trải nghiệm ngay
+        const DEFAULT_ALBUM = {
+            id: 'album_demo_01',
+            code: 'DEMO26',
+            title: 'Album Cưới Mẫu - Minh Anh & Hoàng Nam',
+            clientName: 'Minh Anh & Hoàng Nam',
+            driveFolderUrl: '',
+            portalQuota: 1,
+            albumQuota: 10,
+            portalSelected: [],
+            albumSelected: [],
+            photoNotes: {},
+            generalNote: '',
+            lastSavedAt: null,
+            updatedAt: Date.now(),
+            photos: [
+                { id: 'p_01', name: 'STUDIO_001.JPG', url: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=900&q=80' },
+                { id: 'p_02', name: 'STUDIO_002.JPG', url: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=900&q=80' },
+                { id: 'p_03', name: 'STUDIO_003.JPG', url: 'https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=900&q=80' },
+                { id: 'p_04', name: 'STUDIO_004.JPG', url: 'https://images.unsplash.com/photo-1537633552985-df8429e8048b?auto=format&fit=crop&w=900&q=80' },
+                { id: 'p_05', name: 'STUDIO_005.JPG', url: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?auto=format&fit=crop&w=900&q=80' },
+                { id: 'p_06', name: 'STUDIO_006.JPG', url: 'https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=900&q=80' },
+                { id: 'p_07', name: 'STUDIO_007.JPG', url: 'https://images.unsplash.com/photo-1507504031003-b417219a0fde?auto=format&fit=crop&w=900&q=80' },
+                { id: 'p_08', name: 'STUDIO_008.JPG', url: 'https://images.unsplash.com/photo-1529636798458-92182e662485?auto=format&fit=crop&w=900&q=80' },
+                { id: 'p_09', name: 'STUDIO_009.JPG', url: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?auto=format&fit=crop&w=900&q=80' },
+                { id: 'p_10', name: 'STUDIO_010.JPG', url: 'https://images.unsplash.com/photo-1532712938310-34cb3982ef74?auto=format&fit=crop&w=900&q=80' },
+                { id: 'p_11', name: 'STUDIO_011.JPG', url: 'https://images.unsplash.com/photo-1544078751-58fee2d8a03b?auto=format&fit=crop&w=900&q=80' },
+                { id: 'p_12', name: 'STUDIO_012.JPG', url: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=900&q=80' }
+            ]
+        };
+
+        const state = {
+            mode: 'client',
+            adminAuthenticated: false,
+            adminPin: '1234',
+            studioName: 'Studio Album Proofing',
+            studioLogo: '',
+            tempBrandingLogo: '',
+            albums: [JSON.parse(JSON.stringify(DEFAULT_ALBUM))],
+            activeAlbumId: 'album_demo_01',
+            clientFilter: 'all',
+            gridAspect: '4/3',
+            lightboxPhotoIndex: 0,
+            editingNotePhotoId: null,
+            isCreatingNewAlbum: false,
+            editingPhotosBuffer: []
+        };
+
+        // Kiểm tra tham số URL (?album=...&mode=client)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('album')) {
+            state.activeAlbumId = urlParams.get('album');
+        }
+
+        function getActiveAlbum() {
+            return state.albums.find(a => a.id === state.activeAlbumId) || state.albums[0];
+        }
+
+        // -------------------- 2. KẾT NỐI ĐỒNG BỘ FIRESTORE (TỰ PHỤC HỒI XÁC THỰC) --------------------
+        async function initCloudSync() {
+            try {
+                if (typeof __firebase_config === 'undefined' || !__firebase_config) {
+                    updateSyncBadge(false, 'Chế độ xem trực tiếp');
+                    renderAll();
+                    return;
+                }
+
+                const firebaseConfig = typeof __firebase_config === 'string'
+                    ? JSON.parse(__firebase_config)
+                    : __firebase_config;
+
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                // RULE 3: Luôn xác thực trước khi truy vấn Firestore (có dự phòng ẩn danh nếu token hết hạn khi F5)
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    try {
+                        const cred = await signInWithCustomToken(auth, __initial_auth_token);
+                        currentUser = cred.user;
+                    } catch (tokenErr) {
+                        const anonCred = await signInAnonymously(auth);
+                        currentUser = anonCred.user;
+                    }
+                } else {
+                    const cred = await signInAnonymously(auth);
+                    currentUser = cred.user;
+                }
+
+                if (!currentUser) return;
+                isCloudConnected = true;
+                updateSyncBadge(true, 'Đồng bộ trực tuyến');
+
+                // Lắng nghe cấu hình Thương Hiệu Studio (Logo, Tên Studio, Mật Khẩu Quản Lý)
+                const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'studio_config', 'main');
+                onSnapshot(settingsRef, (snap) => {
+                    if (snap.exists()) {
+                        const data = snap.data();
+                        if (data.adminPin) state.adminPin = String(data.adminPin);
+                        if (data.studioName) state.studioName = String(data.studioName);
+                        if (typeof data.studioLogo === 'string') state.studioLogo = data.studioLogo;
+                        renderHeaderBranding();
+                    }
+                }, (err) => console.error('Lỗi đọc cấu hình Studio:', err));
+
+                // RULE 1 & RULE 2: Truy vấn đơn giản collection công khai, sắp xếp trong JS
+                const albumsCol = collection(db, 'artifacts', appId, 'public', 'data', 'studio_albums');
+                onSnapshot(albumsCol, async (snapshot) => {
+                    if (snapshot.empty) {
+                        await persistAlbumToCloud(DEFAULT_ALBUM);
+                        return;
+                    }
+
+                    const loaded = [];
+                    snapshot.forEach(docSnap => {
+                        loaded.push({ id: docSnap.id, ...docSnap.data() });
+                    });
+
+                    loaded.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+                    state.albums = loaded;
+
+                    if (!state.albums.some(a => a.id === state.activeAlbumId)) {
+                        state.activeAlbumId = state.albums[0].id;
+                    }
+                    renderAll();
+                }, (err) => {
+                    console.error('Lỗi đồng bộ danh sách album:', err);
+                    updateSyncBadge(false, 'Mất kết nối đồng bộ');
+                });
+
+            } catch (e) {
+                console.error('Khởi tạo Cloud thất bại:', e);
+                updateSyncBadge(false, 'Chế độ ngoại tuyến');
+                renderAll();
+            }
+        }
+
+        async function persistAlbumToCloud(albumObj) {
+            if (!isCloudConnected || !db || !currentUser) return;
+            try {
+                const ref = doc(db, 'artifacts', appId, 'public', 'data', 'studio_albums', albumObj.id);
+                await setDoc(ref, {
+                    ...albumObj,
+                    updatedAt: Date.now()
+                }, { merge: true });
+            } catch (err) {
+                console.error('Lỗi lưu dữ liệu lên Cloud:', err);
+                showToast('Không thể đồng bộ dữ liệu, vui lòng thử lại!', 'error');
+            }
+        }
+
+        function updateSyncBadge(online, text) {
+            const badge = document.getElementById('sync-status-badge');
+            if (!badge) return;
+            if (online) {
+                badge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shrink-0';
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> <span>${text}</span>`;
+            } else {
+                badge.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200/80 shrink-0';
+                badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-amber-500"></span> <span>${text}</span>`;
+            }
+        }
+
+        // -------------------- 3. THƯƠNG HIỆU STUDIO (LOGO, TÊN STUDIO & MẬT KHẨU) --------------------
+        function renderHeaderBranding() {
+            const nameEl = document.getElementById('header-studio-name');
+            const logoImg = document.getElementById('header-logo-img');
+            const logoFallback = document.getElementById('header-logo-fallback');
+
+            if (nameEl) nameEl.textContent = state.studioName || 'Studio Album Proofing';
+
+            if (state.studioLogo && logoImg && logoFallback) {
+                logoImg.src = state.studioLogo;
+                logoImg.classList.remove('hidden');
+                logoFallback.classList.add('hidden');
+                logoImg.onerror = () => {
+                    logoImg.classList.add('hidden');
+                    logoFallback.classList.remove('hidden');
+                };
+            } else if (logoImg && logoFallback) {
+                logoImg.classList.add('hidden');
+                logoFallback.classList.remove('hidden');
+            }
+        }
+
+        window.openStudioBrandingModal = function() {
+            state.tempBrandingLogo = state.studioLogo || '';
+            document.getElementById('branding-studio-name').value = state.studioName || 'LUMIÈRE STUDIO';
+            document.getElementById('branding-logo-url').value = state.studioLogo && !state.studioLogo.startsWith('data:') ? state.studioLogo : '';
+            document.getElementById('branding-admin-pin').value = state.adminPin || '1234';
+            updateBrandingPreview();
+            openModal('modal-studio-branding');
+        };
+
+        window.updateBrandingPreview = function() {
+            const nameVal = document.getElementById('branding-studio-name').value.trim() || 'LUMIÈRE STUDIO';
+            document.getElementById('branding-preview-name').textContent = nameVal;
+
+            const prevImg = document.getElementById('branding-preview-img');
+            const prevFallback = document.getElementById('branding-preview-fallback');
+
+            if (state.tempBrandingLogo) {
+                prevImg.src = state.tempBrandingLogo;
+                prevImg.classList.remove('hidden');
+                prevFallback.classList.add('hidden');
+            } else {
+                prevImg.classList.add('hidden');
+                prevFallback.classList.remove('hidden');
+            }
+        };
+
+        window.handleLogoFileUpload = function(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    // Nén logo gọn nhẹ (180x180) để lưu trực tiếp và đồng bộ nhanh qua Firestore
+                    const canvas = document.createElement('canvas');
+                    const maxSize = 180;
+                    let w = img.width;
+                    let h = img.height;
+                    if (w > h) {
+                        if (w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; }
+                    } else {
+                        if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; }
+                    }
+                    canvas.width = w;
+                    canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    state.tempBrandingLogo = canvas.toDataURL('image/png', 0.9);
+                    document.getElementById('branding-logo-url').value = '';
+                    updateBrandingPreview();
+                    showToast('Đã tải ảnh Logo lên khung xem trước!', 'success');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.handleLogoUrlInput = function(urlVal) {
+            state.tempBrandingLogo = urlVal.trim();
+            updateBrandingPreview();
+        };
+
+        window.resetBrandingLogo = function() {
+            state.tempBrandingLogo = '';
+            document.getElementById('branding-logo-url').value = '';
+            document.getElementById('branding-logo-file').value = '';
+            updateBrandingPreview();
+        };
+
+        window.saveStudioBranding = async function() {
+            const newName = document.getElementById('branding-studio-name').value.trim() || 'LUMIÈRE STUDIO';
+            const newPin = document.getElementById('branding-admin-pin').value.trim();
+
+            if (newPin.length < 4) {
+                showToast('Mật khẩu quản lý cần tối thiểu 4 ký tự!', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('btn-save-branding');
+            const origText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-1"></i> Đang lưu...`;
+
+            state.studioName = newName;
+            state.studioLogo = state.tempBrandingLogo;
+            state.adminPin = newPin;
+
+            renderHeaderBranding();
+
+            if (isCloudConnected && db && currentUser) {
+                try {
+                    const settingsRef = doc(db, 'artifacts', appId, 'public', 'data', 'studio_config', 'main');
+                    await setDoc(settingsRef, {
+                        studioName: newName,
+                        studioLogo: state.studioLogo,
+                        adminPin: newPin,
+                        updatedAt: Date.now()
+                    }, { merge: true });
+                    showToast('Đã lưu Tên Studio, Logo và Mật khẩu mới lên hệ thống!', 'success');
+                } catch (err) {
+                    console.error('Lỗi lưu cấu hình Studio:', err);
+                    showToast('Đã cập nhật trên phiên làm việc hiện tại, nhưng chưa đồng bộ được lên Cloud!', 'warning');
+                }
+            } else {
+                showToast('Đã cập nhật Tên Studio, Logo và Mật khẩu!', 'success');
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = origText;
+            closeModal('modal-studio-branding');
+        };
+
+        // -------------------- 4. ĐIỀU HƯỚNG & XÁC THỰC QUẢN LÝ --------------------
+        window.requestAdminAccess = function() {
+            if (state.adminAuthenticated) {
+                switchMode('admin');
+                return;
+            }
+            const pinInput = document.getElementById('pin-login-input');
+            if (pinInput) pinInput.value = '';
+            openModal('modal-pin-login');
+            setTimeout(() => pinInput && pinInput.focus(), 100);
+        };
+
+        window.verifyAdminPin = function() {
+            const entered = (document.getElementById('pin-login-input')?.value || '').trim();
+            if (entered === String(state.adminPin)) {
+                state.adminAuthenticated = true;
+                closeModal('modal-pin-login');
+                switchMode('admin');
+                showToast('Đã mở quyền Quản Lý Studio!', 'success');
+            } else {
+                showToast('Mật khẩu quản lý chưa chính xác!', 'error');
+            }
+        };
+
+        window.switchMode = function(mode) {
+            state.mode = mode;
+            const clientView = document.getElementById('view-client');
+            const adminView = document.getElementById('view-admin');
+            const stickyFooter = document.getElementById('sticky-client-footer');
+            const btnClient = document.getElementById('btn-mode-client');
+            const btnAdmin = document.getElementById('btn-mode-admin');
+            const btnSites = document.getElementById('btn-header-sites');
+            const modeSubtitle = document.getElementById('header-mode-subtitle');
+
+            if (mode === 'client') {
+                clientView.classList.remove('hidden');
+                adminView.classList.add('hidden');
+                stickyFooter.classList.remove('hidden');
+                btnClient.classList.add('hidden');
+                btnClient.classList.remove('flex');
+                btnSites.classList.add('hidden');
+                btnSites.classList.remove('inline-flex');
+                btnAdmin.classList.remove('hidden');
+                btnAdmin.classList.add('flex');
+                if (modeSubtitle) modeSubtitle.textContent = 'Chọn ảnh Album & Ảnh Cổng';
+            } else {
+                clientView.classList.add('hidden');
+                adminView.classList.remove('hidden');
+                stickyFooter.classList.add('hidden');
+                btnAdmin.classList.add('hidden');
+                btnAdmin.classList.remove('flex');
+                btnClient.classList.remove('hidden');
+                btnClient.classList.add('flex');
+                btnSites.classList.remove('hidden');
+                btnSites.classList.add('inline-flex');
+                if (modeSubtitle) modeSubtitle.textContent = 'Chế độ Quản Lý Studio';
+            }
+            renderAll();
+        };
+
+        window.switchAlbumByCode = function() {
+            const codeInput = document.getElementById('client-album-code-input');
+            const code = (codeInput?.value || '').trim().toUpperCase();
+            if (!code) return;
+
+            const found = state.albums.find(a => (a.code || '').toUpperCase() === code || a.id.toUpperCase() === code);
+            if (found) {
+                state.activeAlbumId = found.id;
+                renderAll();
+                showToast(`Đã mở album: ${found.title}`, 'success');
+            } else {
+                showToast(`Không tìm thấy Album có mã "${code}"!`, 'warning');
+            }
+        };
+
+        // -------------------- 5. LOGIC CHỌN ẢNH CỔNG & ẢNH ALBUM (KHÓA ĐÚNG SỐ LƯỢNG) --------------------
+        window.togglePhotoSelection = function(photoId, targetType) {
+            const album = getActiveAlbum();
+            if (!album) return;
+
+            album.portalSelected = album.portalSelected || [];
+            album.albumSelected = album.albumSelected || [];
+
+            const isPortal = album.portalSelected.includes(photoId);
+            const isAlbum = album.albumSelected.includes(photoId);
+
+            if (targetType === 'portal') {
+                if (isPortal) {
+                    album.portalSelected = album.portalSelected.filter(id => id !== photoId);
+                    showToast('Đã bỏ chọn 1 Ảnh Cổng. Bạn có thể chọn bù ảnh khác.', 'info');
+                } else {
+                    if (album.portalSelected.length >= album.portalQuota) {
+                        showToast(`Bạn đã chọn đủ ${album.portalQuota} Ảnh Cổng quy định! Hãy bỏ chọn 1 Ảnh Cổng cũ trước khi chọn bù ảnh mới.`, 'warning');
+                        return;
+                    }
+                    if (isAlbum) {
+                        album.albumSelected = album.albumSelected.filter(id => id !== photoId);
+                    }
+                    album.portalSelected.push(photoId);
+                    showToast(`Đã chọn làm Ảnh Cổng (${album.portalSelected.length}/${album.portalQuota})`, 'success');
+                }
+            } else if (targetType === 'album') {
+                if (isAlbum) {
+                    album.albumSelected = album.albumSelected.filter(id => id !== photoId);
+                    showToast('Đã bỏ chọn 1 Ảnh Album. Bạn có thể chọn bù ảnh khác.', 'info');
+                } else {
+                    if (album.albumSelected.length >= album.albumQuota) {
+                        showToast(`Bạn đã chọn đủ ${album.albumQuota} Ảnh Album quy định! Hãy bỏ chọn 1 Ảnh Album cũ trước khi chọn bù ảnh mới.`, 'warning');
+                        return;
+                    }
+                    if (isPortal) {
+                        album.portalSelected = album.portalSelected.filter(id => id !== photoId);
+                    }
+                    album.albumSelected.push(photoId);
+                    showToast(`Đã chọn làm Ảnh Album (${album.albumSelected.length}/${album.albumQuota})`, 'success');
+                }
+            }
+
+            renderClientView();
+            updateLightboxButtons();
+        };
+
+        window.saveClientSelection = async function() {
+            const album = getActiveAlbum();
+            if (!album) return;
+
+            const btn = document.getElementById('btn-client-save');
+            const origHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang lưu...</span>`;
+
+            const nowStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) + ' - ' + new Date().toLocaleDateString('vi-VN');
+            album.lastSavedAt = nowStr;
+
+            await persistAlbumToCloud(album);
+
+            btn.disabled = false;
+            btn.innerHTML = origHTML;
+
+            const savedBar = document.getElementById('client-last-saved-bar');
+            const savedText = document.getElementById('client-last-saved-text');
+            savedBar.classList.remove('hidden');
+            savedText.textContent = `Đã lưu lựa chọn (${album.portalSelected.length} Ảnh Cổng, ${album.albumSelected.length} Ảnh Album) lúc ${nowStr}`;
+
+            const missingPortal = Math.max(0, album.portalQuota - album.portalSelected.length);
+            const missingAlbum = Math.max(0, album.albumQuota - album.albumSelected.length);
+
+            if (missingPortal === 0 && missingAlbum === 0) {
+                showToast('Tuyệt vời! Bạn đã chọn đủ số lượng và lưu kết quả gửi về Studio!', 'success');
+            } else {
+                showToast(`Đã lưu tạm lựa chọn! Lưu ý bạn còn thiếu ${missingPortal} Ảnh Cổng và ${missingAlbum} Ảnh Album.`, 'info');
+            }
+        };
+
+        // -------------------- 6. GÓP Ý CHỈNH SỬA ẢNH & LIGHTBOX --------------------
+        window.openPhotoNoteModal = function(photoId) {
+            const album = getActiveAlbum();
+            const photo = album.photos.find(p => p.id === photoId);
+            if (!photo) return;
+
+            state.editingNotePhotoId = photoId;
+            document.getElementById('note-modal-thumb').src = photo.url;
+            document.getElementById('note-modal-filename').textContent = photo.name;
+            document.getElementById('note-modal-textarea').value = (album.photoNotes && album.photoNotes[photoId]) || '';
+            openModal('modal-photo-note');
+        };
+
+        window.appendQuickNote = function(text) {
+            const ta = document.getElementById('note-modal-textarea');
+            ta.value = ta.value.trim() ? `${ta.value.trim()}, ${text.toLowerCase()}` : text;
+        };
+
+        window.confirmPhotoNote = function() {
+            const album = getActiveAlbum();
+            if (!album || !state.editingNotePhotoId) return;
+
+            album.photoNotes = album.photoNotes || {};
+            const val = document.getElementById('note-modal-textarea').value.trim();
+            if (val) {
+                album.photoNotes[state.editingNotePhotoId] = val;
+            } else {
+                delete album.photoNotes[state.editingNotePhotoId];
+            }
+            closeModal('modal-photo-note');
+            renderClientView();
+            showToast('Đã ghi nhận góp ý chỉnh sửa ảnh (nhấn "Lưu Lựa Chọn" để gửi về Studio)', 'success');
+        };
+
+        window.openGeneralNoteModal = function() {
+            const album = getActiveAlbum();
+            document.getElementById('general-note-textarea').value = album.generalNote || '';
+            openModal('modal-general-note');
+        };
+
+        window.saveGeneralNote = function() {
+            const album = getActiveAlbum();
+            album.generalNote = document.getElementById('general-note-textarea').value.trim();
+            closeModal('modal-general-note');
+            renderClientView();
+            showToast('Đã cập nhật góp ý chung cho Album!', 'success');
+        };
+
+        // Lightbox Xem Lớn
+        window.openLightbox = function(photoId) {
+            const album = getActiveAlbum();
+            const idx = album.photos.findIndex(p => p.id === photoId);
+            if (idx === -1) return;
+            state.lightboxPhotoIndex = idx;
+            updateLightboxContent();
+            openModal('modal-lightbox');
+        };
+
+        function updateLightboxContent() {
+            const album = getActiveAlbum();
+            const photo = album.photos[state.lightboxPhotoIndex];
+            if (!photo) return;
+
+            document.getElementById('lightbox-index').textContent = `${state.lightboxPhotoIndex + 1} / ${album.photos.length}`;
+            document.getElementById('lightbox-filename').textContent = photo.name;
+            const imgEl = document.getElementById('lightbox-img');
+            imgEl.src = photo.url;
+            imgEl.onerror = () => handleImageFallback(imgEl, photo);
+
+            document.getElementById('lb-note-input').value = (album.photoNotes && album.photoNotes[photo.id]) || '';
+            updateLightboxButtons();
+        }
+
+        function updateLightboxButtons() {
+            const album = getActiveAlbum();
+            if (!album || !album.photos[state.lightboxPhotoIndex]) return;
+            const photoId = album.photos[state.lightboxPhotoIndex].id;
+            const isPortal = (album.portalSelected || []).includes(photoId);
+            const isAlbum = (album.albumSelected || []).includes(photoId);
+
+            const btnPortal = document.getElementById('lb-btn-portal');
+            const btnAlbum = document.getElementById('lb-btn-album');
+
+            if (btnPortal) {
+                btnPortal.className = isPortal
+                    ? 'flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-bold border bg-amber-500 text-stone-950 border-amber-500 transition flex items-center justify-center gap-1.5'
+                    : 'flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-bold border bg-stone-800 hover:bg-stone-700 text-amber-300 border-stone-700 transition flex items-center justify-center gap-1.5';
+            }
+
+            if (btnAlbum) {
+                btnAlbum.className = isAlbum
+                    ? 'flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-bold border bg-emerald-600 text-white border-emerald-600 transition flex items-center justify-center gap-1.5'
+                    : 'flex-1 sm:flex-initial px-4 py-2 rounded-xl text-xs font-bold border bg-stone-800 hover:bg-stone-700 text-emerald-300 border-stone-700 transition flex items-center justify-center gap-1.5';
+            }
+        }
+
+        window.navigateLightbox = function(step) {
+            const album = getActiveAlbum();
+            if (!album || !album.photos.length) return;
+            state.lightboxPhotoIndex = (state.lightboxPhotoIndex + step + album.photos.length) % album.photos.length;
+            updateLightboxContent();
+        };
+
+        window.togglePhotoSelectionFromLightbox = function(targetType) {
+            const album = getActiveAlbum();
+            const photo = album?.photos[state.lightboxPhotoIndex];
+            if (!photo) return;
+            togglePhotoSelection(photo.id, targetType);
+        };
+
+        window.savePhotoNoteFromLightbox = function() {
+            const album = getActiveAlbum();
+            const photo = album?.photos[state.lightboxPhotoIndex];
+            if (!photo) return;
+            album.photoNotes = album.photoNotes || {};
+            const val = (document.getElementById('lb-note-input')?.value || '').trim();
+            if (val) {
+                album.photoNotes[photo.id] = val;
+            } else {
+                delete album.photoNotes[photo.id];
+            }
+            renderClientView();
+            showToast('Đã lưu góp ý cho ảnh này!', 'success');
+        };
+
+        // Hỗ trợ vuốt trái/phải xem ảnh trên điện thoại trong Lightbox
+        (function setupLightboxSwipe() {
+            const area = document.getElementById('lightbox-touch-area');
+            if (!area) return;
+            let startX = 0;
+            area.addEventListener('touchstart', (e) => {
+                startX = e.changedTouches[0].screenX;
+            }, { passive: true });
+            area.addEventListener('touchend', (e) => {
+                const diff = e.changedTouches[0].screenX - startX;
+                if (Math.abs(diff) > 45) {
+                    navigateLightbox(diff < 0 ? 1 : -1);
+                }
+            }, { passive: true });
+        })();
+
+        // -------------------- 7. QUẢN LÝ STUDIO, XÓA ALBUM & LẤY ẢNH GOOGLE DRIVE --------------------
+        window.selectActiveAlbum = function(albumId) {
+            state.activeAlbumId = albumId;
+            renderAll();
+        };
+
+        window.openDeleteAlbumModal = function() {
+            const album = getActiveAlbum();
+            if (!album) return;
+            document.getElementById('delete-album-target-name').textContent = album.title;
+            openModal('modal-delete-album');
+        };
+
+        window.confirmDeleteAlbum = async function() {
+            const album = getActiveAlbum();
+            if (!album) return;
+
+            const btn = document.getElementById('btn-confirm-delete-album');
+            const origText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Đang xóa...';
+
+            const deletedId = album.id;
+            const deletedTitle = album.title;
+
+            if (isCloudConnected && db && currentUser) {
+                try {
+                    const ref = doc(db, 'artifacts', appId, 'public', 'data', 'studio_albums', deletedId);
+                    await deleteDoc(ref);
+                } catch (err) {
+                    console.error('Lỗi xóa album trên Cloud:', err);
+                    showToast('Không thể xóa album trên hệ thống, vui lòng thử lại!', 'error');
+                    btn.disabled = false;
+                    btn.textContent = origText;
+                    return;
+                }
+            }
+
+            state.albums = state.albums.filter(a => a.id !== deletedId);
+            if (state.albums.length === 0) {
+                const freshStarter = JSON.parse(JSON.stringify(DEFAULT_ALBUM));
+                freshStarter.id = 'album_' + Date.now();
+                state.albums = [freshStarter];
+                await persistAlbumToCloud(freshStarter);
+            }
+            state.activeAlbumId = state.albums[0].id;
+
+            btn.disabled = false;
+            btn.textContent = origText;
+            closeModal('modal-delete-album');
+            renderAll();
+            showToast(`Đã xóa "${deletedTitle}"`, 'success');
+        };
+
+        function generateAlbumCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let code = 'ST';
+            for (let i = 0; i < 4; i++) {
+                code += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return code;
+        }
+
+        window.openAlbumEditorModal = function(isNew) {
+            state.isCreatingNewAlbum = isNew;
+            const album = isNew ? {
+                id: 'album_' + Date.now(),
+                code: generateAlbumCode(),
+                title: '',
+                clientName: '',
+                driveFolderUrl: '',
+                portalQuota: 1,
+                albumQuota: 10,
+                photos: []
+            } : getActiveAlbum();
+
+            document.getElementById('editor-modal-title').textContent = isNew ? 'Tạo Album Khách Hàng Mới' : 'Chỉnh Sửa Setup Album & Nguồn Drive';
+            document.getElementById('edit-album-title').value = album.title || '';
+            document.getElementById('edit-client-name').value = album.clientName || '';
+            document.getElementById('edit-album-code').value = album.code || generateAlbumCode();
+            document.getElementById('edit-portal-quota').value = album.portalQuota ?? 1;
+            document.getElementById('edit-album-quota').value = album.albumQuota ?? 10;
+            document.getElementById('edit-drive-folder').value = album.driveFolderUrl || '';
+            document.getElementById('drive-direct-fallback-box').classList.add('hidden');
+            document.getElementById('drive-raw-paste-input').value = '';
+
+            state.editingPhotosBuffer = JSON.parse(JSON.stringify(album.photos || []));
+            renderEditorPhotoPreview();
+            openModal('modal-album-editor');
+        };
+
+        function extractDriveId(url) {
+            if (!url) return '';
+            const patterns = [
+                /\/folders\/([a-zA-Z0-9_-]+)/,
+                /\/file\/d\/([a-zA-Z0-9_-]+)/,
+                /[?&]id=([a-zA-Z0-9_-]+)/
+            ];
+            for (const p of patterns) {
+                const match = url.match(p);
+                if (match && match[1]) return match[1];
+            }
+            if (/^[a-zA-Z0-9_-]{15,}$/.test(url.trim())) return url.trim();
+            return '';
+        }
+
+        function extractPhotosFromDriveHtml(htmlText) {
+            const imgExt = /\.(jpg|jpeg|png|webp|gif|bmp|heic|tif|tiff)$/i;
+            const map = new Map();
+
+            // Cách 1: Phân tích cấu trúc .flip-entry từ embeddedfolderview
+            const docHtml = new DOMParser().parseFromString(htmlText, 'text/html');
+            const entries = docHtml.querySelectorAll('.flip-entry');
+            entries.forEach(entry => {
+                const fileId = (entry.getAttribute('id') || '').replace(/^entry-/, '').trim();
+                const titleEl = entry.querySelector('.flip-entry-title');
+                const fileName = titleEl ? titleEl.textContent.trim() : '';
+                if (fileId && fileName && imgExt.test(fileName)) {
+                    map.set(fileId, {
+                        id: 'drv_' + fileId,
+                        name: fileName,
+                        driveFileId: fileId,
+                        url: `https://drive.google.com/thumbnail?id=${fileId}&sz=w1600`
+                    });
+                }
+            });
+
+            // Cách 2: Phân tích từ mã nguồn trang Google Drive đầy đủ (AF_initDataCallback / data-id)
+            if (map.size === 0) {
+                const dataIdNodes = docHtml.querySelectorAll('[data-id]');
+                dataIdNodes.forEach(node => {
+                    const fileId = node.getAttribute('data-id');
+                    const label = node.getAttribute('aria-label') || node.getAttribute('data-tooltip') || node.textContent || '';
+                    const cleanName = label.trim().split('\n')[0].trim();
+                    if (fileId && fileId.length >= 15 && imgExt.test(cleanName)) {
+                        map.set(fileId, {
+                            id: 'drv_' + fileId,
+                            name: cleanName,
+                            driveFileId: fileId,
+                            url: `https://drive.google.com/thumbnail?id=${fileId}&sz=w1600`
+                        });
+                    }
+                });
+            }
+
+            // Cách 3: Regex tìm cặp [ID, Tên_File_Ảnh] trong chuỗi JSON của Google Drive
+            if (map.size === 0) {
+                const jsonRegex = /\["([a-zA-Z0-9_-]{20,45})"(?:,\[[^\]]*\])?,"([^"]+\.(?:jpg|jpeg|png|webp|heic|JPG|JPEG|PNG|WEBP|HEIC))"/g;
+                let match;
+                while ((match = jsonRegex.exec(htmlText)) !== null) {
+                    const fileId = match[1];
+                    const fileName = match[2].replace(/\\u003d/g, '=').replace(/\\u0026/g, '&');
+                    if (!map.has(fileId)) {
+                        map.set(fileId, {
+                            id: 'drv_' + fileId,
+                            name: fileName,
+                            driveFileId: fileId,
+                            url: `https://drive.google.com/thumbnail?id=${fileId}&sz=w1600`
+                        });
+                    }
+                }
+            }
+
+            const results = Array.from(map.values());
+            results.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+            return results;
+        }
+
+        window.fetchPhotosFromDrive = async function() {
+            const folderInput = document.getElementById('edit-drive-folder').value.trim();
+            if (!folderInput) {
+                showToast('Vui lòng dán link thư mục Google Drive!', 'warning');
+                return;
+            }
+            const folderId = extractDriveId(folderInput);
+            if (!folderId) {
+                showToast('Link thư mục Google Drive chưa đúng định dạng!', 'warning');
+                return;
+            }
+
+            // Cập nhật sẵn link mở trực tiếp cho phương án dự phòng
+            const directOpenBtn = document.getElementById('btn-open-drive-embedded');
+            if (directOpenBtn) {
+                directOpenBtn.href = `https://drive.google.com/embeddedfolderview?id=${encodeURIComponent(folderId)}#list`;
+            }
+
+            const btn = document.getElementById('btn-fetch-drive');
+            const origHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span>Đang quét ảnh...</span>`;
+
+            try {
+                const embeddedUrl = `https://drive.google.com/embeddedfolderview?id=${encodeURIComponent(folderId)}`;
+                const fullFolderUrl = `https://drive.google.com/drive/folders/${encodeURIComponent(folderId)}`;
+
+                const endpoints = [
+                    { url: `https://api.allorigins.win/get?url=${encodeURIComponent(embeddedUrl)}`, isJson: true },
+                    { url: `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(embeddedUrl)}`, isJson: false },
+                    { url: `https://corsproxy.io/?${encodeURIComponent(embeddedUrl)}`, isJson: false },
+                    { url: `https://api.allorigins.win/get?url=${encodeURIComponent(fullFolderUrl)}`, isJson: true }
+                ];
+
+                let extracted = [];
+                for (const ep of endpoints) {
+                    try {
+                        const res = await fetch(ep.url);
+                        if (!res.ok) continue;
+                        let htmlText = '';
+                        if (ep.isJson) {
+                            const json = await res.json();
+                            htmlText = json && json.contents ? json.contents : '';
+                        } else {
+                            htmlText = await res.text();
+                        }
+                        if (htmlText) {
+                            const found = extractPhotosFromDriveHtml(htmlText);
+                            if (found.length > 0) {
+                                extracted = found;
+                                break;
+                            }
+                        }
+                    } catch (_) {}
+                }
+
+                if (extracted.length > 0) {
+                    state.editingPhotosBuffer = extracted;
+                    renderEditorPhotoPreview();
+                    document.getElementById('drive-direct-fallback-box').classList.add('hidden');
+                    showToast(`Thành công! Đã lấy ${extracted.length} ảnh và giữ nguyên tên tệp gốc.`, 'success');
+                } else {
+                    // Tự động mở khung lấy nhanh trực tiếp từ tab Drive (0% bị chặn)
+                    document.getElementById('drive-direct-fallback-box').classList.remove('hidden');
+                    showToast('Google đang giới hạn truy cập tự động từ xa. Hãy dùng nút "1. Mở Danh Sách Drive" ngay bên dưới để lấy toàn bộ ảnh trong 10 giây!', 'warning');
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = origHTML;
+            }
+        };
+
+        window.toggleDirectDriveBox = function() {
+            const folderInput = document.getElementById('edit-drive-folder').value.trim();
+            const folderId = extractDriveId(folderInput);
+            const directOpenBtn = document.getElementById('btn-open-drive-embedded');
+            if (directOpenBtn && folderId) {
+                directOpenBtn.href = `https://drive.google.com/embeddedfolderview?id=${encodeURIComponent(folderId)}#list`;
+            }
+            document.getElementById('drive-direct-fallback-box').classList.toggle('hidden');
+        };
+
+        window.parsePastedDriveSource = function() {
+            const raw = document.getElementById('drive-raw-paste-input').value.trim();
+            if (!raw) return;
+
+            // 1. Thử trích xuất nếu người dùng dán mã nguồn HTML từ trang Drive
+            const fromHtml = extractPhotosFromDriveHtml(raw);
+            if (fromHtml.length > 0) {
+                state.editingPhotosBuffer = fromHtml;
+                renderEditorPhotoPreview();
+                showToast(`Tuyệt vời! Đã nhận diện ${fromHtml.length} ảnh và giữ nguyên tên tệp gốc!`, 'success');
+                return;
+            }
+
+            // 2. Phân tách các link bằng dấu phẩy (,) HOẶC xuống hàng (\n)
+            const items = raw.split(/[,\n]+/).map(l => l.trim()).filter(Boolean);
+            const parsed = [];
+            const seenIds = new Set();
+
+            items.forEach((item, idx) => {
+                const parts = item.split('|').map(s => s.trim());
+                let name = `IMG_${String(idx + 1).padStart(4, '0')}.JPG`;
+                let link = parts[0];
+                if (parts.length >= 2) {
+                    name = parts[0];
+                    link = parts[1];
+                }
+                const fId = extractDriveId(link);
+                const uniqueKey = fId || link;
+                if ((fId || link.startsWith('http')) && !seenIds.has(uniqueKey)) {
+                    seenIds.add(uniqueKey);
+                    parsed.push({
+                        id: fId ? ('drv_' + fId) : ('man_' + Date.now() + '_' + idx),
+                        name,
+                        driveFileId: fId || null,
+                        url: fId ? `https://drive.google.com/thumbnail?id=${fId}&sz=w1600` : link
+                    });
+                }
+            });
+
+            if (parsed.length > 0) {
+                state.editingPhotosBuffer = parsed;
+                renderEditorPhotoPreview();
+                showToast(`Đã nạp ${parsed.length} ảnh từ danh sách vừa dán!`, 'success');
+                // Tự động cố gắng lấy tên tệp gốc của từng file Drive trong nền
+                enrichDriveFilenames(parsed);
+            }
+        };
+
+        async function enrichDriveFilenames(photoList) {
+            let updatedAny = false;
+            for (const photo of photoList) {
+                if (!photo.driveFileId || !/^IMG_\d+\.JPG$/i.test(photo.name)) continue;
+                try {
+                    const viewUrl = `https://drive.google.com/file/d/${encodeURIComponent(photo.driveFileId)}/view`;
+                    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(viewUrl)}`);
+                    if (!res.ok) continue;
+                    const json = await res.json();
+                    const html = json && json.contents ? json.contents : '';
+                    const titleMatch = html.match(/<title>([^<]+?)\s*-\s*Google Drive<\/title>/i);
+                    if (titleMatch && titleMatch[1]) {
+                        photo.name = titleMatch[1].trim();
+                        updatedAny = true;
+                    }
+                } catch (_) {}
+            }
+            if (updatedAny) {
+                renderEditorPhotoPreview();
+            }
+        }
+
+        window.loadSampleStudioPhotos = function() {
+            state.editingPhotosBuffer = JSON.parse(JSON.stringify(DEFAULT_ALBUM.photos));
+            renderEditorPhotoPreview();
+            showToast('Đã nạp 12 ảnh mẫu Studio!', 'success');
+        };
+
+        window.clearEditorPhotos = function() {
+            state.editingPhotosBuffer = [];
+            renderEditorPhotoPreview();
+        };
+
+        function renderEditorPhotoPreview() {
+            const container = document.getElementById('editor-photo-preview');
+            document.getElementById('editor-photo-count').textContent = state.editingPhotosBuffer.length;
+
+            if (state.editingPhotosBuffer.length === 0) {
+                container.innerHTML = `<div class="col-span-full py-6 text-center text-xs text-stone-400">Chưa có ảnh nào được nạp</div>`;
+                return;
+            }
+
+            container.innerHTML = state.editingPhotosBuffer.map(p => `
+                <div class="bg-white rounded-lg border border-stone-200 overflow-hidden">
+                    <div class="aspect-square bg-stone-100">
+                        <img src="${p.url}" alt="${escapeHtml(p.name)}" class="w-full h-full object-cover" loading="lazy"
+                            onerror="handleImageFallback(this, {driveFileId: '${p.driveFileId || ''}', name: '${escapeHtml(p.name)}'})">
+                    </div>
+                    <div class="px-1.5 py-1 text-[10px] font-mono font-semibold text-stone-700 truncate" title="${escapeHtml(p.name)}">
+                        ${escapeHtml(p.name)}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.saveAlbumConfiguration = async function() {
+            const title = document.getElementById('edit-album-title').value.trim();
+            const clientName = document.getElementById('edit-client-name').value.trim() || 'Khách hàng';
+            const code = (document.getElementById('edit-album-code').value.trim() || generateAlbumCode()).toUpperCase();
+            const portalQuota = Math.max(0, parseInt(document.getElementById('edit-portal-quota').value, 10) || 0);
+            const albumQuota = Math.max(1, parseInt(document.getElementById('edit-album-quota').value, 10) || 1);
+            const driveFolderUrl = document.getElementById('edit-drive-folder').value.trim();
+
+            if (!title) {
+                showToast('Vui lòng nhập Tên Album!', 'warning');
+                return;
+            }
+            if (state.editingPhotosBuffer.length === 0) {
+                showToast('Vui lòng lấy ảnh từ Google Drive hoặc nạp ảnh trước khi lưu!', 'warning');
+                return;
+            }
+
+            let targetAlbum;
+            if (state.isCreatingNewAlbum) {
+                targetAlbum = {
+                    id: 'album_' + Date.now(),
+                    code,
+                    title,
+                    clientName,
+                    driveFolderUrl,
+                    portalQuota,
+                    albumQuota,
+                    photos: state.editingPhotosBuffer,
+                    portalSelected: [],
+                    albumSelected: [],
+                    photoNotes: {},
+                    generalNote: '',
+                    lastSavedAt: null,
+                    updatedAt: Date.now()
+                };
+                state.albums.unshift(targetAlbum);
+                state.activeAlbumId = targetAlbum.id;
+            } else {
+                targetAlbum = getActiveAlbum();
+                targetAlbum.code = code;
+                targetAlbum.title = title;
+                targetAlbum.clientName = clientName;
+                targetAlbum.driveFolderUrl = driveFolderUrl;
+                targetAlbum.portalQuota = portalQuota;
+                targetAlbum.albumQuota = albumQuota;
+                targetAlbum.photos = state.editingPhotosBuffer;
+                targetAlbum.portalSelected = (targetAlbum.portalSelected || []).slice(0, portalQuota);
+                targetAlbum.albumSelected = (targetAlbum.albumSelected || []).slice(0, albumQuota);
+            }
+
+            await persistAlbumToCloud(targetAlbum);
+            closeModal('modal-album-editor');
+            renderAll();
+            showToast(`Đã lưu thiết lập "${title}" (${portalQuota} Ảnh Cổng + ${albumQuota} Ảnh Album)!`, 'success');
+        };
+
+        // -------------------- 8. SAO CHÉP LINK & XUẤT TÊN FILE CHO STUDIO --------------------
+        function buildClientShareUrl() {
+            const baseUrl = window.location.href.split('?')[0];
+            return `${baseUrl}?album=${encodeURIComponent(state.activeAlbumId)}&mode=client`;
+        }
+
+        window.copyShareLink = function() {
+            copyTextToClipboard(buildClientShareUrl(), 'Đã sao chép Link gửi khách hàng!');
+        };
+
+        window.copySelectedFilenames = function(type) {
+            const album = getActiveAlbum();
+            const ids = type === 'portal' ? (album.portalSelected || []) : (album.albumSelected || []);
+            const names = ids.map(id => album.photos.find(p => p.id === id)?.name).filter(Boolean);
+
+            if (names.length === 0) {
+                showToast(`Khách chưa chọn ${type === 'portal' ? 'Ảnh Cổng' : 'Ảnh Album'} nào!`, 'warning');
+                return;
+            }
+            copyTextToClipboard(names.join(', '), `Đã sao chép ${names.length} tên file ${type === 'portal' ? 'Ảnh Cổng' : 'Ảnh Album'}!`);
+        };
+
+        window.copyFullReport = function() {
+            const album = getActiveAlbum();
+            const portalNames = (album.portalSelected || []).map(id => album.photos.find(p => p.id === id)?.name).filter(Boolean);
+            const albumNames = (album.albumSelected || []).map(id => album.photos.find(p => p.id === id)?.name).filter(Boolean);
+
+            let report = `=== KẾT QUẢ CHỌN ẢNH: ${album.title} (${state.studioName}) ===\n`;
+            report += `Khách hàng: ${album.clientName}\n`;
+            report += `Thời gian lưu: ${album.lastSavedAt || 'Chưa lưu'}\n\n`;
+            report += `1. ẢNH CỔNG (${portalNames.length}/${album.portalQuota}):\n${portalNames.join(', ') || '(Chưa chọn)'}\n\n`;
+            report += `2. ẢNH ALBUM (${albumNames.length}/${album.albumQuota}):\n${albumNames.join(', ') || '(Chưa chọn)'}\n\n`;
+
+            const notesEntries = Object.entries(album.photoNotes || {});
+            report += `3. GÓP Ý CHỈNH SỬA TỪNG ẢNH (${notesEntries.length}):\n`;
+            if (notesEntries.length === 0) {
+                report += `(Không có)\n`;
+            } else {
+                notesEntries.forEach(([pid, note]) => {
+                    const pName = album.photos.find(p => p.id === pid)?.name || pid;
+                    report += `- ${pName}: ${note}\n`;
+                });
+            }
+
+            if (album.generalNote) {
+                report += `\n4. GÓP Ý CHUNG:\n${album.generalNote}\n`;
+            }
+
+            copyTextToClipboard(report, 'Đã sao chép toàn bộ báo cáo kết quả!');
+        };
+
+        function copyTextToClipboard(text, successMsg) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand('copy');
+                showToast(successMsg, 'success');
+            } catch (err) {
+                showToast('Không thể sao chép tự động, vui lòng thử lại!', 'error');
+            }
+            document.body.removeChild(textarea);
+        }
+
+        // -------------------- 9. RENDER GIAO DIỆN NGAY NGẮN, CÂN ĐỐI --------------------
+        function renderAll() {
+            const album = getActiveAlbum();
+            if (!album) return;
+
+            renderHeaderBranding();
+            document.getElementById('header-album-title').textContent = album.title;
+            document.getElementById('header-client-subtitle').textContent =
+                `Vui lòng chọn đúng số lượng Ảnh Cổng (${album.portalQuota} ảnh) và Ảnh Album (${album.albumQuota} ảnh) theo quy định bên dưới, sau đó nhấn "Lưu Lựa Chọn".`;
+
+            const codeInput = document.getElementById('client-album-code-input');
+            if (codeInput) codeInput.value = album.code || 'DEMO26';
+
+            renderClientView();
+            renderAdminView();
+        }
+
+        window.setClientFilter = function(filter) {
+            state.clientFilter = filter;
+            document.querySelectorAll('.filter-pill').forEach(btn => {
+                const isActive = btn.getAttribute('data-filter') === filter;
+                btn.className = isActive
+                    ? 'filter-pill px-3.5 py-1.5 rounded-full text-xs font-bold bg-stone-900 text-white shrink-0 transition'
+                    : 'filter-pill px-3.5 py-1.5 rounded-full text-xs font-bold bg-stone-100 text-stone-700 hover:bg-stone-200 shrink-0 transition';
+            });
+            renderClientGallery();
+        };
+
+        window.toggleGridAspect = function() {
+            const order = ['4/3', 'square', 'auto'];
+            const labels = { '4/3': 'Khung đều 4:3', 'square': 'Khung vuông', 'auto': 'Tỷ lệ gốc' };
+            const next = order[(order.indexOf(state.gridAspect) + 1) % order.length];
+            state.gridAspect = next;
+            document.getElementById('label-aspect-mode').textContent = labels[next];
+            renderClientGallery();
+        };
+
+        function renderClientView() {
+            const album = getActiveAlbum();
+            if (!album) return;
+
+            const pCount = (album.portalSelected || []).length;
+            const aCount = (album.albumSelected || []).length;
+            const nCount = Object.keys(album.photoNotes || {}).length;
+            const portalSet = new Set(album.portalSelected || []);
+            const albumSet = new Set(album.albumSelected || []);
+            const unselectedCount = album.photos.filter(p => !portalSet.has(p.id) && !albumSet.has(p.id)).length;
+
+            document.getElementById('client-portal-count').textContent = `${pCount} / ${album.portalQuota}`;
+            document.getElementById('client-album-count').textContent = `${aCount} / ${album.albumQuota}`;
+            document.getElementById('footer-portal-count').textContent = `${pCount}/${album.portalQuota}`;
+            document.getElementById('footer-album-count').textContent = `${aCount}/${album.albumQuota}`;
+
+            const pPct = album.portalQuota > 0 ? Math.min(100, Math.round((pCount / album.portalQuota) * 100)) : 100;
+            const aPct = album.albumQuota > 0 ? Math.min(100, Math.round((aCount / album.albumQuota) * 100)) : 100;
+            document.getElementById('client-portal-bar').style.width = `${pPct}%`;
+            document.getElementById('client-album-bar').style.width = `${aPct}%`;
+
+            const pRem = album.portalQuota - pCount;
+            document.getElementById('client-portal-status').textContent =
+                pRem === 0 ? '✓ Đã chọn đủ số lượng quy định' : `Chọn đúng số lượng quy định (còn thiếu ${pRem})`;
+
+            const aRem = album.albumQuota - aCount;
+            document.getElementById('client-album-status').textContent =
+                aRem === 0 ? '✓ Đã chọn đủ số lượng quy định' : `Chọn đúng số lượng quy định (còn thiếu ${aRem})`;
+
+            document.getElementById('filter-count-all').textContent = album.photos.length;
+            document.getElementById('filter-count-portal').textContent = pCount;
+            document.getElementById('filter-count-album').textContent = aCount;
+            document.getElementById('filter-count-unselected').textContent = unselectedCount;
+            document.getElementById('filter-count-notes').textContent = nCount;
+
+            const dot = document.getElementById('general-note-dot');
+            if (album.generalNote) dot.classList.remove('hidden');
+            else dot.classList.add('hidden');
+
+            renderClientGallery();
+        }
+
+        window.renderClientGallery = function() {
+            const album = getActiveAlbum();
+            const grid = document.getElementById('client-gallery-grid');
+            const emptyState = document.getElementById('client-empty-state');
+            if (!album || !grid) return;
+
+            const keyword = (document.getElementById('client-search-input').value || '').trim().toLowerCase();
+            const portalSet = new Set(album.portalSelected || []);
+            const albumSet = new Set(album.albumSelected || []);
+            const notesMap = album.photoNotes || {};
+
+            const filteredPhotos = album.photos.filter(photo => {
+                if (keyword && !photo.name.toLowerCase().includes(keyword)) return false;
+                if (state.clientFilter === 'portal') return portalSet.has(photo.id);
+                if (state.clientFilter === 'album') return albumSet.has(photo.id);
+                if (state.clientFilter === 'notes') return Boolean(notesMap[photo.id]);
+                if (state.clientFilter === 'unselected') return !portalSet.has(photo.id) && !albumSet.has(photo.id);
+                return true;
+            });
+
+            if (filteredPhotos.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            const aspectClass = state.gridAspect === 'square'
+                ? 'aspect-square'
+                : state.gridAspect === 'auto'
+                    ? 'aspect-[4/3] sm:aspect-auto min-h-[180px]'
+                    : 'aspect-[4/3]';
+
+            const imgFitClass = state.gridAspect === 'auto' ? 'object-contain bg-stone-100' : 'object-cover';
+
+            grid.innerHTML = filteredPhotos.map(photo => {
+                const isPortal = portalSet.has(photo.id);
+                const isAlbum = albumSet.has(photo.id);
+                const note = notesMap[photo.id] || '';
+
+                const cardBorder = isPortal
+                    ? 'border-amber-500 ring-2 ring-amber-400/60 bg-amber-50/20'
+                    : isAlbum
+                        ? 'border-emerald-600 ring-2 ring-emerald-500/50 bg-emerald-50/20'
+                        : 'border-stone-200/90 hover:border-stone-300 bg-white';
+
+                return `
+                    <article class="group rounded-2xl border ${cardBorder} overflow-hidden shadow-xs hover:shadow-md transition-all duration-200 flex flex-col">
+                        <!-- Khung Ảnh -->
+                        <div class="relative ${aspectClass} w-full bg-stone-100 overflow-hidden cursor-pointer" onclick="openLightbox('${photo.id}')">
+                            <img src="${photo.url}" alt="${escapeHtml(photo.name)}" loading="lazy"
+                                onerror="handleImageFallback(this, {driveFileId: '${photo.driveFileId || ''}', name: '${escapeHtml(photo.name)}'})"
+                                class="w-full h-full ${imgFitClass} group-hover:scale-[1.03] transition-transform duration-300">
+                            
+                            ${isPortal ? `
+                                <span class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold bg-amber-500 text-stone-950 shadow-sm flex items-center gap-1">
+                                    <i class="fa-solid fa-crown"></i> ẢNH CỔNG
+                                </span>
+                            ` : isAlbum ? `
+                                <span class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-lg text-[10px] font-extrabold bg-emerald-600 text-white shadow-sm flex items-center gap-1">
+                                    <i class="fa-solid fa-book-open"></i> ẢNH ALBUM
+                                </span>
+                            ` : ''}
+
+                            <button type="button" onclick="event.stopPropagation(); openLightbox('${photo.id}')" title="Xem ảnh lớn"
+                                class="absolute top-2.5 right-2.5 w-7 h-7 rounded-lg bg-black/50 hover:bg-black/75 text-white flex items-center justify-center opacity-85 sm:opacity-0 sm:group-hover:opacity-100 transition">
+                                <i class="fa-solid fa-expand text-xs"></i>
+                            </button>
+                        </div>
+
+                        <!-- Tên Tệp Gốc & Nút Chọn -->
+                        <div class="p-3 flex-1 flex flex-col justify-between gap-2">
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="text-xs font-mono font-bold text-stone-800 truncate" title="${escapeHtml(photo.name)}">
+                                    ${escapeHtml(photo.name)}
+                                </span>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-1.5">
+                                <button type="button" onclick="togglePhotoSelection('${photo.id}', 'portal')"
+                                    class="py-1.5 px-2 rounded-xl text-[11px] font-bold border transition flex items-center justify-center gap-1 ${
+                                        isPortal
+                                            ? 'bg-amber-500 text-stone-950 border-amber-500 shadow-xs'
+                                            : 'bg-stone-50 hover:bg-amber-50 text-stone-700 hover:text-amber-900 border-stone-200'
+                                    }">
+                                    <i class="fa-solid fa-crown text-[10px]"></i>
+                                    <span>Cổng</span>
+                                </button>
+
+                                <button type="button" onclick="togglePhotoSelection('${photo.id}', 'album')"
+                                    class="py-1.5 px-2 rounded-xl text-[11px] font-bold border transition flex items-center justify-center gap-1 ${
+                                        isAlbum
+                                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                                            : 'bg-stone-50 hover:bg-emerald-50 text-stone-700 hover:text-emerald-900 border-stone-200'
+                                    }">
+                                    <i class="fa-solid fa-book-open text-[10px]"></i>
+                                    <span>Album</span>
+                                </button>
+                            </div>
+
+                            <button type="button" onclick="openPhotoNoteModal('${photo.id}')"
+                                class="w-full py-1.5 px-2.5 rounded-xl text-[11px] font-semibold border transition flex items-center justify-center gap-1.5 ${
+                                    note
+                                        ? 'bg-rose-50 text-rose-700 border-rose-200'
+                                        : 'bg-white hover:bg-stone-50 text-stone-500 border-stone-200'
+                                }">
+                                <i class="fa-solid fa-wand-magic-sparkles text-[10px]"></i>
+                                <span class="truncate">${note ? escapeHtml(note) : 'Góp ý chỉnh sửa'}</span>
+                            </button>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        };
+
+        function renderAdminView() {
+            const album = getActiveAlbum();
+            if (!album) return;
+
+            // Render danh sách thẻ Album ở cột trái (như Ảnh 4)
+            document.getElementById('admin-album-total-count').textContent = state.albums.length;
+            const listContainer = document.getElementById('admin-album-cards-list');
+            listContainer.innerHTML = state.albums.map(a => {
+                const isSelected = a.id === album.id;
+                const pSel = (a.portalSelected || []).length;
+                const aSel = (a.albumSelected || []).length;
+                const codeStr = a.code || 'DEMO26';
+
+                return `
+                    <div onclick="selectActiveAlbum('${a.id}')"
+                        class="p-4 rounded-2xl border cursor-pointer transition-all space-y-2.5 ${
+                            isSelected
+                                ? 'bg-white border-stone-900 ring-2 ring-stone-900/10 shadow-sm'
+                                : 'bg-white/80 hover:bg-white border-stone-200/90 hover:border-stone-300'
+                        }">
+                        <div class="flex items-start justify-between gap-2">
+                            <h4 class="text-sm font-extrabold text-stone-900 leading-snug line-clamp-2">${escapeHtml(a.title)}</h4>
+                            <span class="px-2 py-0.5 rounded-md bg-stone-100 text-stone-700 font-mono text-[11px] font-bold shrink-0">
+                                ${escapeHtml(codeStr)}
+                            </span>
+                        </div>
+                        <div class="flex items-center justify-between gap-2 text-xs font-bold">
+                            <div class="flex items-center gap-3">
+                                <span class="text-amber-600 flex items-center gap-1">
+                                    <i class="fa-solid fa-crown text-[11px]"></i> ${pSel}/${a.portalQuota}
+                                </span>
+                                <span class="text-emerald-600 flex items-center gap-1">
+                                    <i class="fa-solid fa-book-open text-[11px]"></i> ${aSel}/${a.albumQuota}
+                                </span>
+                            </div>
+                            ${isSelected ? `
+                                <span class="px-2.5 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[11px] font-bold">
+                                    Đang chọn
+                                </span>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Render chi tiết Album đang chọn ở cột phải
+            const codeDisplay = album.code || 'DEMO26';
+            document.getElementById('admin-active-album-title').textContent = album.title;
+            document.getElementById('admin-active-album-code').textContent = `Mã: ${codeDisplay}`;
+            document.getElementById('admin-tip-code').textContent = codeDisplay;
+            document.getElementById('admin-share-url-preview').value = buildClientShareUrl();
+
+            const pIds = album.portalSelected || [];
+            const aIds = album.albumSelected || [];
+            const notesMap = album.photoNotes || {};
+
+            document.getElementById('stat-total-photos').textContent = album.photos.length;
+            document.getElementById('stat-last-sync').textContent = album.lastSavedAt || 'Khách chưa nhấn Lưu';
+            document.getElementById('stat-notes-count').textContent = `${Object.keys(notesMap).length} ảnh có góp ý`;
+
+            const genBox = document.getElementById('admin-general-note-box');
+            if (album.generalNote) {
+                genBox.classList.remove('hidden');
+                document.getElementById('admin-general-note-text').textContent = album.generalNote;
+            } else {
+                genBox.classList.add('hidden');
+            }
+
+            document.getElementById('admin-portal-list-count').textContent = `${pIds.length}/${album.portalQuota}`;
+            document.getElementById('admin-album-list-count').textContent = `${aIds.length}/${album.albumQuota}`;
+
+            renderAdminSelectedList('admin-portal-list', pIds, album, 'amber', 'Khách chưa chọn Ảnh Cổng nào.');
+            renderAdminSelectedList('admin-album-list', aIds, album, 'emerald', 'Khách chưa chọn Ảnh Album nào.');
+        }
+
+        function renderAdminSelectedList(containerId, photoIds, album, accentColor, emptyMessage) {
+            const container = document.getElementById(containerId);
+            if (!photoIds || photoIds.length === 0) {
+                container.innerHTML = `<div class="py-10 px-4 text-center text-xs text-stone-400">${emptyMessage}</div>`;
+                return;
+            }
+
+            container.innerHTML = photoIds.map((id, idx) => {
+                const photo = album.photos.find(p => p.id === id);
+                if (!photo) return '';
+                const note = (album.photoNotes || {})[id];
+
+                return `
+                    <div class="p-2.5 rounded-xl border border-stone-200 bg-stone-50/70 flex items-center gap-3">
+                        <span class="w-6 h-6 rounded-lg bg-${accentColor}-100 text-${accentColor}-800 text-xs font-extrabold flex items-center justify-center shrink-0">
+                            ${idx + 1}
+                        </span>
+                        <img src="${photo.url}" alt="${escapeHtml(photo.name)}" class="w-12 h-12 rounded-lg object-cover bg-stone-200 shrink-0"
+                            onerror="handleImageFallback(this, {driveFileId: '${photo.driveFileId || ''}', name: '${escapeHtml(photo.name)}'})">
+                        <div class="min-w-0 flex-1">
+                            <div class="text-xs font-mono font-bold text-stone-900 truncate">${escapeHtml(photo.name)}</div>
+                            ${note
+                                ? `<div class="text-[11px] text-rose-700 font-medium mt-0.5"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i>${escapeHtml(note)}</div>`
+                                : `<div class="text-[11px] text-stone-400 mt-0.5">Không có yêu cầu chỉnh sửa riêng</div>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // -------------------- 10. TIỆN ÍCH HỖ TRỢ UI & FALLBACK ẢNH --------------------
+        window.handleImageFallback = function(imgEl, photo) {
+            if (photo && photo.driveFileId && !imgEl.dataset.triedLh3) {
+                imgEl.dataset.triedLh3 = '1';
+                imgEl.src = `https://lh3.googleusercontent.com/d/${photo.driveFileId}=w1200`;
+                return;
+            }
+            imgEl.onerror = null;
+            imgEl.src = `https://placehold.co/600x450/e7e5e4/57534e?text=${encodeURIComponent(photo?.name || 'Studio+Photo')}`;
+        };
+
+        window.openModal = function(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.remove('hidden');
+        };
+
+        window.closeModal = function(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.add('hidden');
+        };
+
+        window.showToast = function(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const colors = {
+                success: 'bg-emerald-900 text-white border-emerald-700',
+                warning: 'bg-amber-600 text-white border-amber-500',
+                error: 'bg-rose-800 text-white border-rose-600',
+                info: 'bg-stone-900 text-white border-stone-700'
+            };
+            const icons = {
+                success: 'fa-circle-check text-emerald-300',
+                warning: 'fa-triangle-exclamation text-amber-200',
+                error: 'fa-circle-xmark text-rose-200',
+                info: 'fa-circle-info text-amber-400'
+            };
+
+            const toast = document.createElement('div');
+            toast.className = `pointer-events-auto px-3.5 py-2.5 rounded-xl border shadow-xl text-xs font-semibold flex items-start gap-2 animate-fade-in ${colors[type] || colors.info}`;
+            toast.innerHTML = `
+                <i class="fa-solid ${icons[type] || icons.info} mt-0.5 shrink-0"></i>
+                <span class="leading-relaxed">${escapeHtml(message)}</span>
+            `;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.25s ease';
+                setTimeout(() => toast.remove(), 260);
+            }, 4000);
+        };
+
+        function escapeHtml(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        // Khởi chạy ứng dụng khi tải xong trang
+        window.addEventListener('DOMContentLoaded', () => {
+            renderAll();
+            initCloudSync();
+        });
+    </script>
+</body>
+</html>
